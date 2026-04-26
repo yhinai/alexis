@@ -85,6 +85,11 @@ export function SpatialRealAvatar({ audioBus, className }: Props) {
                 if (cancelled || !mountRef.current) return;
 
                 view = new AvatarView(avatar, mountRef.current);
+                view.onFirstRendering = () => console.log('[SpatialReal] first frame');
+                view.controller.onConnectionState = (s) => console.log('[SpatialReal] connection:', s);
+                view.controller.onConversationState = (s) => console.log('[SpatialReal] conversation:', s);
+                view.controller.onError = (err) => console.error('[SpatialReal] error:', err);
+
                 await view.controller.initializeAudioContext();
                 if (cancelled) return;
 
