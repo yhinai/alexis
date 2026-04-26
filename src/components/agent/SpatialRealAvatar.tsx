@@ -96,6 +96,15 @@ export function SpatialRealAvatar({ audioBus, className }: Props) {
                 await view.controller.start();
                 if (cancelled) return;
 
+                // AvatarKit's controller.send "Also caches to data layer for playback"
+                // (per AvatarController.d.ts), so the SDK plays Gemini's audio through
+                // its own internal audio player. InterviewLiveClient.enqueueAudio is
+                // already playing the same audio via outputAudioContext, which produced
+                // duplicate-voice playback. Mute AvatarKit's player; lip-sync keyframes
+                // are server-driven (see yieldFramesData in the d.ts) so muting the
+                // output stage does not desync the mouth animation.
+                view.controller.setVolume(0);
+
                 // Buffer one chunk so we can attach end=true to the last *non-empty*
                 // audio chunk of a turn. AvatarKit's controller.send rejects an
                 // empty buffer with end=true ("unexpected reqId, no audio
