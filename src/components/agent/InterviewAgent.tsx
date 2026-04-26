@@ -3,7 +3,7 @@
 import { useInterviewStore } from '@/lib/store';
 import { Button } from "@/components/ui/button";
 import { StatusIndicator } from './StatusIndicator';
-import { Visualizer } from './Visualizer';
+import { SpatialRealAvatar } from './SpatialRealAvatar';
 import { ThinkingIndicator } from './ThinkingIndicator';
 import { Mic, MicOff, GraduationCap } from 'lucide-react';
 import { useCallback, useEffect, useState, useRef } from 'react';
@@ -24,6 +24,7 @@ export function InterviewAgent() {
     const [volume, setVolume] = useState(0);
     const [isModelSpeaking, setIsModelSpeaking] = useState(false);
     const [wasInterrupted, setWasInterrupted] = useState(false);
+    const [audioBus, setAudioBusState] = useState<InterviewLiveClient['audioBus'] | null>(null);
     const clientRef = useRef<InterviewLiveClient | null>(null);
 
     // Tool handler - always gets fresh state to avoid closure issues
@@ -162,6 +163,7 @@ export function InterviewAgent() {
         };
 
         clientRef.current = client;
+        setAudioBusState(client.audioBus);
         console.log(`🎙️ Gemini Live client initialized in ${mode} mode`);
 
         // Register disconnect callback for ending interview
@@ -341,7 +343,7 @@ export function InterviewAgent() {
                 </div>
 
                 <div className="flex-1 w-full min-w-0">
-                    <Visualizer isSpeaking={isSpeaking || isModelSpeaking} volume={volume} />
+                    <SpatialRealAvatar audioBus={audioBus} className="w-full h-32 rounded-xl bg-zinc-900 overflow-hidden" />
                 </div>
 
                 {status === 'connected' ? (

@@ -14,6 +14,7 @@
 
 import { INTERVIEW_TOOLS } from "./gemini-tools";
 import { getSystemInstruction } from "./interviewer-prompt";
+import { SpatialAudioBus } from "./spatial-audio-bus";
 
 // Audio sample rates per Gemini Live API spec
 const INPUT_SAMPLE_RATE = 16000;  // Input MUST be 16kHz
@@ -85,6 +86,9 @@ export class InterviewLiveClient {
   private sourceNode: MediaStreamAudioSourceNode | null = null;
   private highPassFilter: BiquadFilterNode | null = null;
   private lowPassFilter: BiquadFilterNode | null = null;
+
+  // Audio bus: forwards raw PCM s16le chunks to subscribers (e.g. SpatialReal avatar lip-sync)
+  public audioBus = new SpatialAudioBus();
 
   // Callbacks
   public onStatusChange: (status: ConnectionStatus) => void = () => {};
@@ -440,6 +444,7 @@ export class InterviewLiveClient {
       }
 
       if (msg.serverContent.turnComplete) {
+        this.audioBus.publish(new ArrayBuffer(0), true);
         // When turnComplete arrives alongside interrupted, it's the
         // cancelled model turn ending - NOT a response to the user.
         // Don't clear the pending state or nudge timer in that case.
@@ -480,6 +485,8 @@ export class InterviewLiveClient {
             hasAudioResponse = true;
             const audioData = this.base64ToFloat32Array(part.inlineData.data);
             this.enqueueAudio(audioData);
+            const pcmBuffer = this.base64ToPcmArrayBuffer(part.inlineData.data);
+            this.audioBus.publish(pcmBuffer, false);
           }
           if (part.text) {
             hasTextResponse = true;
@@ -871,6 +878,15 @@ ${p.starterCode}
       binary += String.fromCharCode(bytes[i]);
     }
     return btoa(binary);
+  }
+
+  private base64ToPcmArrayBuffer(base64: string): ArrayBuffer {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer;
   }
 
   private base64ToFloat32Array(base64: string): Float32Array<ArrayBuffer> {
