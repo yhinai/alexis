@@ -131,43 +131,19 @@ POST   /api/auth/*                          Session auth (lightweight)
 
 (Confirm exact route filenames before depending on a path -- `src/app/api/<feature>/route.ts` is the source of truth.)
 
-## Git Workflow -- Branch Policy
+## Git Workflow
 
-**Working branch:** `charlie`. All day-to-day commits land on `charlie`.
-**Protected branch:** `main`. Never commit to or push to `main` directly.
+`main` is the working branch. Commit and push directly to `main` -- there is no protected-branch policy and no PR ceremony required for routine work.
 
-This policy is **enforced at the tool boundary** by `.claude/hooks/branch-policy.sh`, wired in as a PreToolUse Bash hook in `.claude/settings.json`. The hook refuses:
-- `git commit` / `git cherry-pick` / `git revert` while HEAD is on `main`
-- any `git push` whose remote ref is `main` (e.g. `origin main`, `HEAD:main`, `charlie:main`)
-- any `--force` / `-f` push that mentions `main`
-
-If you see `BRANCH POLICY: refusing ...` on stderr, you tried to do something the policy bans -- switch to `charlie` (`git checkout charlie`) or retarget the push.
-
-### Day-to-day flow (hackathon mode)
-
-Hackathon submission closes at 19:00 PT today; PR-per-change ceremony is overkill. Commit early, push often:
-
-1. Confirm you're on `charlie`: `git checkout charlie`
-2. Stage and commit with a conventional-commit message
-3. `git push -u origin charlie`
-
-No PR is required for `charlie` itself.
-
-### Consolidation flow (when promoting to `main`)
-
-When stable work on `charlie` should land on `main` (post-hackathon cleanup, release tag, etc.) open a PR from `charlie` → `main`:
-
-1. `git push origin charlie`
-2. `gh pr create --base main --head charlie` with a Summary + Test Plan body
-3. Self-review the diff (`gh pr diff`); address findings in **new commits on `charlie`**, never amend already-pushed history
-4. `gh pr review --approve -b "..."` once clean, then `gh pr merge --squash`
-
-Never force-push to `main`. Never amend a commit that has already been pushed to `charlie` -- add a new commit and let conventional-commit messages tell the story.
+- Commit early, push often
+- Conventional commit messages (see below)
+- For risky multi-file refactors, use a short-lived feature branch (`<type>/<short-description>`) and merge via PR; otherwise commit on `main`
+- Never force-push -- `main` is shared remote state and other clones rely on linear history
+- Never amend a commit that has already been pushed -- add a new commit instead
 
 ## Branching & Commit Conventions
 
-- **Working branch**: `charlie` (your changes go here)
-- **Protected branch**: `main` (only reachable via a PR from `charlie`)
+- **Working branch**: `main` (only branch in routine use)
 - **Commit format**: Conventional Commits
   - `feat:` / `feat(scope):` -- new feature
   - `fix:` / `fix(scope):` -- bug fix
