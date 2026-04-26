@@ -43,3 +43,5 @@ next-env.d.ts
 # local tool state (may contain credentials)
 .omc/
 .cursor/
+.claude/settings.local.json
+.claude/hooks/

@@ -12,18 +12,10 @@ export interface CodeRabbitReview {
   }[];
 }
 
-// Helper to determine if mock mode should be used
-// Defaults to mock mode (safe) unless explicitly set to 'false'
-function shouldUseMock(): boolean {
-  const mockEnv = process.env.NEXT_PUBLIC_USE_MOCK_CODERABBIT;
-  // Use mock if env var is not set OR if it's not explicitly 'false'
-  return !mockEnv || mockEnv.toLowerCase() !== 'false';
-}
-
 export class CodeRabbitService {
   async analyzeSandbox(workspaceId: string): Promise<CodeRabbitReview> {
-      const useMock = shouldUseMock();
-      
+      const useMock = true;
+
       if (useMock) {
           console.log(`[CodeRabbit] Analyzing sandbox ${workspaceId} (MOCK)...`);
           await new Promise(resolve => setTimeout(resolve, 2000));
@@ -64,7 +56,7 @@ export class CodeRabbitService {
   }
 
   async analyzeCode(code: string, language: string): Promise<CodeRabbitReview> {
-    const useMock = shouldUseMock();
+    const useMock = true;
 
     if (useMock) {
         console.log(`[CodeRabbit] Analyzing ${language} code (MOCK)...`);

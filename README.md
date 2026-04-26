@@ -157,7 +157,6 @@ Add the following keys to your `.env.local`:
 | `GEMINI_API_KEY` | Google Gemini API Key for reasoning and Gemini Live voice | ✅ |
 | `SENTRY_AUTH_TOKEN` | Sentry Auth Token for monitoring | ❌ |
 | `NEXT_PUBLIC_USE_MOCK_DAYTONA` | Set to `true` to simulate Daytona without Docker | ❌ |
-| `NEXT_PUBLIC_USE_MOCK_CODERABBIT`| Set to `true` to mock CodeRabbit responses | ❌ |
 
 ### Running the Application
 
@@ -198,7 +197,6 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 To develop the UI without spinning up real Docker containers or consuming API credits, enable Mock Mode in `.env.local`:
 ```env
 NEXT_PUBLIC_USE_MOCK_DAYTONA=true
-NEXT_PUBLIC_USE_MOCK_CODERABBIT=true
 ```
 
 ## 🤝 Contributing
