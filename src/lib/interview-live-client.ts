@@ -34,6 +34,11 @@ const MAX_AUDIO_QUEUE_SIZE = 100; // Prevent memory leaks
 // After an interruption, if no model response within this time, nudge the model
 const POST_INTERRUPT_TIMEOUT_MS = 7000;
 
+// SpatialReal's avatar render lags audio by ~500ms because of the round-trip to
+// its inference service. Delay each turn's audio playback by the same amount so
+// the spoken word lands at the same time as the matching mouth shape.
+const LIPSYNC_AUDIO_DELAY_MS = 500;
+
 // Interview mode type
 export type InterviewMode = 'real' | 'practice';
 
@@ -854,7 +859,7 @@ ${p.starterCode}
 
       const currentTime = ctx.currentTime;
       if (this.nextPlayTime < currentTime) {
-        this.nextPlayTime = currentTime + 0.02;
+        this.nextPlayTime = currentTime + LIPSYNC_AUDIO_DELAY_MS / 1000;
       }
 
       source.start(this.nextPlayTime);

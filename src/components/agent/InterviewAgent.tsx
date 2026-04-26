@@ -373,7 +373,7 @@ export function InterviewAgent() {
 
             <div className="flex flex-col gap-3 p-4 border rounded-xl bg-card">
                 <div className="w-full min-w-0 flex flex-col gap-2 relative">
-                    <SpatialRealAvatar audioBus={audioBus} className="w-full h-48 rounded-xl bg-zinc-900 overflow-hidden" />
+                    <SpatialRealAvatar audioBus={audioBus} className="w-full h-48 rounded-xl overflow-hidden bg-zinc-900 ring-1 ring-white/5" />
                     {onBreak && breakUntilMs !== null && (
                         <div className="absolute top-2 left-2 right-2 z-10 bg-amber-900/80 border border-amber-500/50 text-amber-100 text-xs rounded-md px-3 py-2 flex items-center justify-between backdrop-blur-sm">
                             <span className="flex items-center gap-2">
@@ -391,7 +391,7 @@ export function InterviewAgent() {
                         </div>
                     )}
                     <SelfView
-                        className="w-full h-48 rounded-xl bg-zinc-900 overflow-hidden"
+                        className="w-full h-48 rounded-xl overflow-hidden bg-gradient-to-br from-zinc-900 via-zinc-950 to-black ring-1 ring-white/5"
                         onFrame={handleVideoFrame}
                         onCameraStateChange={setCameraOn}
                     />

@@ -388,7 +388,7 @@ export default function InterviewPage() {
 
   // Register end-interview callback so the AI agent can trigger it via tool
   useEffect(() => {
-    setOnEndInterview(() => handleEndInterview);
+    setOnEndInterview(handleEndInterview);
     return () => setOnEndInterview(null);
   }, [setOnEndInterview]);
 
@@ -578,7 +578,7 @@ function SystemDesignInterviewLayout() {
 
   // Register end-interview callback
   useEffect(() => {
-    setOnEndInterview(() => handleEndInterview);
+    setOnEndInterview(handleEndInterview);
     return () => setOnEndInterview(null);
   }, [setOnEndInterview]);
 
