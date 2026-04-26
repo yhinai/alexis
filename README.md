@@ -219,4 +219,4 @@ This repo ships with project-local Claude Code automation under `.claude/`:
 
 ---
 
-*Built for the Better Hack hackathon. Traditional interviews are dead.*
+*Built for the [2026 BETA Hackathon](https://discord.gg/dWMumXE6Tn) -- April 26, 2026, Frontier Tower, San Francisco -- organized by the Berkeley Emerging Technology Association (BETA). Traditional interviews are dead.*
