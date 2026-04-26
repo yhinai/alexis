@@ -4,6 +4,16 @@
   },
   "teammateMode": "auto",
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/env-status-banner.sh\" 2>&1 1>/dev/null; exit 0"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Edit|Write",
@@ -31,6 +41,24 @@
             "command": "jq -r '(.tool_input.file_path // empty) + \" \" + (.tool_input.command // empty)' | grep -qE '(public/spatialreal|rm -rf? .*public/spatialreal)' && jq -r '.tool_input.command // empty' | grep -qiE '(rm |unlink|delete)' && { echo 'Refusing: public/spatialreal/ holds the AvatarKit WASM the runtime fetches. Run /update-avatar-wasm to refresh it instead.' >&2; exit 2; } || exit 0"
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/secret-diff-scan.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); case \"$f\" in */src/middleware.ts) echo 'Note: src/middleware.ts is deprecated in Next 16. Consider migrating to src/proxy.ts (use the migrate-middleware-to-proxy subagent).' >&2 ;; esac; exit 0"
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -49,6 +77,24 @@
           {
             "type": "command",
             "command": "f=$(jq -r '.tool_input.file_path // empty'); case \"$f\" in */package-lock.json|*/package.json) cd \"$CLAUDE_PROJECT_DIR\"; pkg_wasm=$(find node_modules/@spatialwalk/avatarkit/dist -maxdepth 1 -name '*.wasm' 2>/dev/null | head -1 | xargs -n1 basename 2>/dev/null); src_wasm=$(grep -oE \"avatar_core_wasm-[A-Za-z0-9_-]+\\.wasm\" src/components/agent/SpatialRealAvatar.tsx 2>/dev/null | head -1); if [ -n \"$pkg_wasm\" ] && [ -n \"$src_wasm\" ] && [ \"$pkg_wasm\" != \"$src_wasm\" ]; then echo \"⚠️  AvatarKit WASM filename drift: package=$pkg_wasm src=$src_wasm — run /update-avatar-wasm\" >&2; fi ;; esac; exit 0"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/vitest-related.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/api-route-schema-check.sh\""
           }
         ]
       }

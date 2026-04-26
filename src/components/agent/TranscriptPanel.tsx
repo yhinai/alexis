@@ -1,9 +1,45 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { useInterviewStore } from '@/lib/store';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageSquare, Mic, Type } from 'lucide-react';
+
+const markdownComponents = {
+    p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
+        <p {...props} className="leading-relaxed mb-1.5 last:mb-0" />
+    ),
+    strong: (props: React.HTMLAttributes<HTMLElement>) => (
+        <strong {...props} className="font-semibold" />
+    ),
+    em: (props: React.HTMLAttributes<HTMLElement>) => <em {...props} className="italic" />,
+    code: (props: React.HTMLAttributes<HTMLElement>) => (
+        <code
+            {...props}
+            className="px-1 py-0.5 rounded bg-black/10 dark:bg-white/10 font-mono text-[0.95em]"
+        />
+    ),
+    ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
+        <ul {...props} className="list-disc pl-4 my-1 space-y-0.5" />
+    ),
+    ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
+        <ol {...props} className="list-decimal pl-4 my-1 space-y-0.5" />
+    ),
+    li: (props: React.HTMLAttributes<HTMLLIElement>) => <li {...props} className="leading-relaxed" />,
+    h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
+        <h1 {...props} className="font-semibold text-sm mt-1 mb-1" />
+    ),
+    h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
+        <h2 {...props} className="font-semibold text-sm mt-1 mb-1" />
+    ),
+    h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
+        <h3 {...props} className="font-semibold mt-1 mb-1" />
+    ),
+    a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+        <a {...props} target="_blank" rel="noreferrer" className="underline underline-offset-2" />
+    ),
+};
 
 function formatRelativeTime(timestamp: number): string {
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -95,9 +131,11 @@ export function TranscriptPanel() {
                     {formatRelativeTime(group.firstTimestamp)}
                   </span>
                 </div>
-                <p className="leading-relaxed whitespace-pre-wrap">
-                  {group.messages.map((m) => m.text).join(' ')}
-                </p>
+                <div className="leading-relaxed">
+                  <ReactMarkdown components={markdownComponents}>
+                    {group.messages.map((m) => m.text).join('\n\n')}
+                  </ReactMarkdown>
+                </div>
               </div>
             ))
           )}
