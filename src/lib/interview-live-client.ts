@@ -293,6 +293,23 @@ export class InterviewLiveClient {
     }));
   }
 
+  sendVideoFrame(base64Jpeg: string) {
+    if (!this.ws || !this._isConnected || !this.isSetupComplete) return;
+
+    try {
+      this.ws.send(JSON.stringify({
+        realtimeInput: {
+          mediaChunks: [{
+            mimeType: "image/jpeg",
+            data: base64Jpeg,
+          }]
+        }
+      }));
+    } catch {
+      // WebSocket may have closed between check and send
+    }
+  }
+
   sendCodeContext(code: string, silent: boolean = true) {
     if (!this.ws || !this._isConnected) {
       return;

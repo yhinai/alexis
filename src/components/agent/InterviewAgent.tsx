@@ -13,9 +13,11 @@ import { InterviewLiveClient, ConnectionStatus, InterviewMode, ProblemContext } 
 import { PROBLEMS } from '@/data/problems';
 import { COMPANIES } from '@/data/company-problems';
 import { authFetch, initSession } from '@/lib/api-client';
+import { categoryEmoji } from '@/lib/visual-observations';
 
 export function InterviewAgent() {
-    const { code, workspaceId, workspaceStatus, interviewMode, currentProblemId, selectedCompanyId, setAgentDisconnect } = useInterviewStore();
+    const { code, workspaceId, workspaceStatus, interviewMode, currentProblemId, selectedCompanyId, setAgentDisconnect, visualObservations } = useInterviewStore();
+    const [, setNowTick] = useState(0);
     const [isThinking, setIsThinking] = useState(false);
     const [currentAction, setCurrentAction] = useState<string>('');
     
@@ -26,7 +28,20 @@ export function InterviewAgent() {
     const [isModelSpeaking, setIsModelSpeaking] = useState(false);
     const [wasInterrupted, setWasInterrupted] = useState(false);
     const [audioBus, setAudioBusState] = useState<InterviewLiveClient['audioBus'] | null>(null);
+    const [cameraOn, setCameraOn] = useState(false);
     const clientRef = useRef<InterviewLiveClient | null>(null);
+
+    const handleVideoFrame = useCallback((base64: string) => {
+        clientRef.current?.sendVideoFrame(base64);
+    }, []);
+
+    // Tick once per second while there's a recent observation, so the chip auto-hides after 8s
+    const latestObs = visualObservations[visualObservations.length - 1];
+    useEffect(() => {
+        if (!latestObs) return;
+        const id = setInterval(() => setNowTick((n) => n + 1), 1000);
+        return () => clearInterval(id);
+    }, [latestObs]);
 
     // Tool handler - always gets fresh state to avoid closure issues
     const handleToolsCall = useCallback(async (functionCalls: any[]) => {
@@ -335,7 +350,11 @@ export function InterviewAgent() {
             <div className="flex flex-col gap-3 p-4 border rounded-xl bg-card">
                 <div className="w-full min-w-0 flex flex-col gap-2">
                     <SpatialRealAvatar audioBus={audioBus} className="w-full h-48 rounded-xl bg-zinc-900 overflow-hidden" />
-                    <SelfView className="w-full h-48 rounded-xl bg-zinc-900 overflow-hidden" />
+                    <SelfView
+                        className="w-full h-48 rounded-xl bg-zinc-900 overflow-hidden"
+                        onFrame={handleVideoFrame}
+                        onCameraStateChange={setCameraOn}
+                    />
                 </div>
 
                 <div className="flex items-center justify-between gap-3">
@@ -345,6 +364,17 @@ export function InterviewAgent() {
                             <div className="flex items-center gap-1 text-[10px] text-emerald-400">
                                 <Mic className="w-2.5 h-2.5 animate-pulse" />
                                 <span>Mic active</span>
+                            </div>
+                        )}
+                        {status === 'connected' && cameraOn && (
+                            <div className="flex items-center gap-1 text-[10px] text-zinc-400">
+                                <span>👁 Vision on</span>
+                            </div>
+                        )}
+                        {status === 'connected' && latestObs && (Date.now() - latestObs.timestamp) < 8000 && (
+                            <div className="flex items-center gap-1 text-[10px] text-zinc-300 bg-zinc-800/60 border border-zinc-700 rounded-full px-2 py-0.5 animate-pulse">
+                                <span>{categoryEmoji(latestObs.category)}</span>
+                                <span className="truncate max-w-[180px]">{latestObs.note.slice(0, 40)}</span>
                             </div>
                         )}
                     </div>

@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { CodeRabbitReview } from './coderabbit';
 import { LARGE_PASTE_THRESHOLD } from './constants';
+import type { VisualObservation } from './visual-observations';
 
 interface ReviewResult {
   score: number;
@@ -127,6 +128,11 @@ interface InterviewState {
   addTestResult: (result: TestResult) => void;
   clearTestResults: () => void;
 
+  // Visual Observations (vision-aware events recorded by Alexis)
+  visualObservations: VisualObservation[];
+  addVisualObservation: (obs: VisualObservation) => void;
+  clearVisualObservations: () => void;
+
   // Demo / Wizard Mode
   isWizardMode: boolean;
   toggleWizardMode: () => void;
@@ -165,7 +171,11 @@ export const useInterviewStore = create<InterviewState>()(
       // Session
       status: 'idle',
       interviewStartTime: null,
-      startSession: () => set({ status: 'active', interviewStartTime: Date.now() }),
+      startSession: () => set({
+        status: 'active',
+        interviewStartTime: Date.now(),
+        visualObservations: [],
+      }),
       endSession: () => set({ status: 'completed' }),
       setStatus: (status) => set({ status }),
 
@@ -250,6 +260,16 @@ export const useInterviewStore = create<InterviewState>()(
         testResults: [...state.testResults, result]
       })),
       clearTestResults: () => set({ testResults: [] }),
+
+      // Visual Observations
+      visualObservations: [],
+      addVisualObservation: (obs) => set((state) => {
+        const next = [...state.visualObservations, obs];
+        // Cap at 100 — drop oldest
+        if (next.length > 100) next.splice(0, next.length - 100);
+        return { visualObservations: next };
+      }),
+      clearVisualObservations: () => set({ visualObservations: [] }),
 
       // Wizard Mode
       isWizardMode: false,

@@ -3,6 +3,7 @@ import { generateTestCode } from '@/lib/test-runner';
 import { Problem } from '@/data/problems';
 import { COMPANIES, CompanyProblem, getAllCompanyProblems, NEETCODE_CATEGORIES } from '@/data/company-problems';
 import { authFetch } from '@/lib/api-client';
+import type { VisualObservation, VisualObservationCategory, VisualObservationSeverity } from '@/lib/visual-observations';
 
 // Wrapper to catch tool errors and prevent disconnections
 const wrapTool = (name: string, fn: Function) => async (...args: any[]) => {
@@ -331,6 +332,25 @@ export const getAgentTools = () => ({
             return store.getIntegrityReport();
         }
         return "Integrity monitoring not available.";
+    }),
+
+    record_visual_observation: wrapTool('record_visual_observation', async (
+        { category, severity, note }: {
+            category: VisualObservationCategory;
+            severity: VisualObservationSeverity;
+            note: string;
+        }
+    ) => {
+        const trimmed = (note || '').slice(0, 200);
+        const obs: VisualObservation = {
+            id: crypto.randomUUID(),
+            timestamp: Date.now(),
+            category,
+            severity,
+            note: trimmed,
+        };
+        useInterviewStore.getState().addVisualObservation(obs);
+        return { ok: true };
     }),
 
     end_interview: wrapTool('end_interview', async () => {

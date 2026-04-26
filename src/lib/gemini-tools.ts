@@ -102,6 +102,30 @@ export const INTERVIEW_TOOLS = [
         name: "end_interview",
         description: "End the interview session and generate the final report. Use this when the candidate says they want to end the interview, says 'I'm done with the interview', 'let's wrap up', 'end the interview', or similar. Always give a brief closing remark before calling this tool.",
       },
+      {
+        name: "record_visual_observation",
+        description: "Record a noteworthy visual observation about the candidate. Call this when you see something significant: a long away gap, an integrity concern, a stress spike, an aha moment, a meaningful gesture, or an environmental cue. Don't call for routine reactions — only for events worth showing in the final report.",
+        parameters: {
+          type: "object",
+          properties: {
+            category: {
+              type: "string",
+              enum: ["away", "integrity", "stress", "engagement", "aha", "gesture", "environment"],
+              description: "The category of the observation.",
+            },
+            severity: {
+              type: "string",
+              enum: ["low", "medium", "high"],
+              description: "Severity. Use 'high' for integrity concerns, 'medium' for stress/away, 'low' for positive engagement/aha.",
+            },
+            note: {
+              type: "string",
+              description: "A short factual description of what you saw (max 200 chars). Avoid speculation — describe the observable cue.",
+            },
+          },
+          required: ["category", "severity", "note"],
+        },
+      },
     ],
   },
 ];

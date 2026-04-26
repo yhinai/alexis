@@ -5,11 +5,13 @@ import { Video, VideoOff, AlertCircle } from 'lucide-react';
 
 interface Props {
     className?: string;
+    onFrame?: (jpegBase64: string) => void;
+    onCameraStateChange?: (live: boolean) => void;
 }
 
 type State = 'idle' | 'requesting' | 'live' | 'off' | 'error';
 
-export function SelfView({ className }: Props) {
+export function SelfView({ className, onFrame, onCameraStateChange }: Props) {
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
     const [state, setState] = useState<State>('idle');
@@ -58,6 +60,32 @@ export function SelfView({ className }: Props) {
             stopStream();
         };
     }, [enabled]);
+
+    useEffect(() => {
+        onCameraStateChange?.(state === 'live');
+    }, [state, onCameraStateChange]);
+
+    useEffect(() => {
+        if (!onFrame || state !== 'live') return;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 320;
+        canvas.height = 180;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const intervalId = setInterval(() => {
+            const video = videoRef.current;
+            if (!video || video.readyState < 2 || video.videoWidth === 0) return;
+
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            const base64 = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
+            onFrame(base64);
+        }, 1000);
+
+        return () => clearInterval(intervalId);
+    }, [onFrame, state]);
 
     function stopStream() {
         if (streamRef.current) {

@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Shield, AlertTriangle, CheckCircle, XCircle, Code, Brain, Loader2, FileDown } from "lucide-react";
 import { useInterviewStore } from "@/lib/store";
+import { categoryEmoji } from "@/lib/visual-observations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -47,7 +48,9 @@ export function InterviewReportDialog({ open, onOpenChange }: InterviewReportDia
     code,
     transcript,
     testResults,
-    currentProblemId
+    currentProblemId,
+    visualObservations,
+    interviewStartTime,
   } = useInterviewStore();
 
   const [aiReport, setAiReport] = useState<any>(null); // StructuredReport
@@ -322,6 +325,46 @@ export function InterviewReportDialog({ open, onOpenChange }: InterviewReportDia
               </CardHeader>
               <CardContent className="text-foreground/80 italic">
                 "{aiReport.finalFeedback}"
+              </CardContent>
+            </Card>
+
+            {/* Visual Observations */}
+            <Card className="lg:col-span-2 border-l-4 border-l-indigo-500 bg-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-indigo-400">
+                  <span className="text-xl">👁️</span> Visual Observations
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {visualObservations.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No notable visual observations.</p>
+                ) : (
+                  <ol className="relative border-l border-border ml-2 space-y-3">
+                    {visualObservations.map((obs) => {
+                      const startedAt = interviewStartTime ?? obs.timestamp;
+                      const offsetMs = Math.max(0, obs.timestamp - startedAt);
+                      const totalSec = Math.floor(offsetMs / 1000);
+                      const mm = String(Math.floor(totalSec / 60)).padStart(2, '0');
+                      const ss = String(totalSec % 60).padStart(2, '0');
+                      const dotColor =
+                        obs.severity === 'high' ? 'bg-red-500'
+                        : obs.severity === 'medium' ? 'bg-yellow-500'
+                        : 'bg-green-500';
+                      return (
+                        <li key={obs.id} className="ml-4">
+                          <span className="absolute -left-1.5 mt-1.5 w-3 h-3 rounded-full bg-background border border-border" />
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-mono text-xs text-muted-foreground w-10 shrink-0">{mm}:{ss}</span>
+                            <span>{categoryEmoji(obs.category)}</span>
+                            <span className="text-xs uppercase tracking-wider text-muted-foreground">{obs.category}</span>
+                            <span className={`inline-block w-2 h-2 rounded-full ${dotColor}`} aria-label={`severity ${obs.severity}`} />
+                            <span className="text-foreground/80">{obs.note}</span>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                )}
               </CardContent>
             </Card>
 
