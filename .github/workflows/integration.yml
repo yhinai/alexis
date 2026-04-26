@@ -1,0 +1,201 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      run_daytona_tests:
+        description: "Run Daytona live integration tests"
+        required: false
+        default: "false"
+        type: boolean
+      run_gemini_tests:
+        description: "Run Gemini live API tests"
+        required: false
+        default: "false"
+        type: boolean
+      run_gemini_live_tests:
+        description: "Run Gemini Live WebSocket tests"
+        required: false
+        default: "false"
+        type: boolean
+
+concurrency:
+  group: integration-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DAYTONA_API_KEY: ${{ secrets.DAYTONA_API_KEY }}
+  DAYTONA_API_URL: ${{ secrets.DAYTONA_API_URL }}
+  GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY }}
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  NEXT_PUBLIC_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  NEXT_PUBLIC_USE_MOCK_DAYTONA: "false"
+
+jobs:
+  # ─── Daytona Sandbox Integration ────────────────────────────────
+  daytona-integration:
+    name: Daytona Integration
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_daytona_tests == 'true') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+
+      - name: Check Daytona credentials
+        id: creds
+        run: |
+          if [ -n "$DAYTONA_API_KEY" ] && [ -n "$DAYTONA_API_URL" ]; then
+            echo "ok=true" >> $GITHUB_OUTPUT
+          else
+            echo "ok=false" >> $GITHUB_OUTPUT
+            echo "::warning::Daytona credentials not configured — skipping"
+          fi
+
+      - name: Test Daytona SDK connection
+        if: steps.creds.outputs.ok == 'true'
+        run: |
+          node -e "
+          const { Daytona } = require('@daytonaio/sdk');
+          (async () => {
+            const d = new Daytona({
+              apiKey: process.env.DAYTONA_API_KEY,
+              apiUrl: process.env.DAYTONA_API_URL,
+            });
+            console.log('Daytona SDK initialized');
+          })().catch(e => { console.error(e.message); process.exit(1); });
+          "
+
+      - name: Run Daytona integration tests
+        if: steps.creds.outputs.ok == 'true'
+        env:
+          RUN_INTEGRATION_TESTS: "true"
+        run: npx vitest run --reporter=verbose src/lib/daytona.integration.test.ts
+        timeout-minutes: 5
+
+  # ─── Gemini Text Generation Integration ─────────────────────────
+  gemini-integration:
+    name: Gemini Integration
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_gemini_tests == 'true') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+
+      - name: Check Gemini credentials
+        id: creds
+        run: |
+          if [ -n "$GOOGLE_AI_API_KEY" ] || [ -n "$GEMINI_API_KEY" ]; then
+            echo "ok=true" >> $GITHUB_OUTPUT
+          else
+            echo "ok=false" >> $GITHUB_OUTPUT
+            echo "::warning::Gemini API key not configured — skipping"
+          fi
+
+      - name: Test Gemini API connection
+        if: steps.creds.outputs.ok == 'true'
+        run: |
+          node -e "
+          const { GoogleGenerativeAI } = require('@google/generative-ai');
+          (async () => {
+            const key = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
+            const genAI = new GoogleGenerativeAI(key);
+            const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+            const result = await model.generateContent('Respond with just: OK');
+            console.log('Gemini API response:', result.response.text().trim().substring(0, 20));
+          })().catch(e => { console.error(e.message); process.exit(1); });
+          "
+
+      - name: Run Gemini integration tests
+        if: steps.creds.outputs.ok == 'true'
+        env:
+          RUN_INTEGRATION_TESTS: "true"
+        run: npx vitest run --reporter=verbose src/lib/__tests__/gemini.test.ts
+        timeout-minutes: 3
+
+  # ─── Gemini Live WebSocket / TTS Integration ────────────────────
+  gemini-live-integration:
+    name: Gemini Live TTS
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_gemini_live_tests == 'true') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+
+      - name: Check Gemini credentials
+        id: creds
+        run: |
+          if [ -n "$GEMINI_API_KEY" ]; then
+            echo "ok=true" >> $GITHUB_OUTPUT
+          else
+            echo "ok=false" >> $GITHUB_OUTPUT
+            echo "::warning::Gemini API key not configured — skipping Live tests"
+          fi
+
+      - name: Test Gemini GenAI SDK init
+        if: steps.creds.outputs.ok == 'true'
+        run: |
+          node -e "
+          const { GoogleGenAI } = require('@google/genai');
+          const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+          console.log('GoogleGenAI SDK initialized');
+          "
+
+      - name: Verify Gemini Live client implementation
+        run: |
+          for method in "connect()" "disconnect()" "sendText" "isConnected" "onToolsCall" "base64ToFloat32Array" "float32ToInt16Base64"; do
+            grep -q "$method" src/lib/gemini-live-client.ts || { echo "::error::Missing $method in gemini-live-client.ts"; exit 1; }
+          done
+          echo "All expected methods present in Gemini Live client"
+
+  # ─── Summary ────────────────────────────────────────────────────
+  integration-summary:
+    name: Integration Summary
+    runs-on: ubuntu-latest
+    needs: [daytona-integration, gemini-integration, gemini-live-integration]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          status() {
+            case "$1" in
+              success) echo "✅ Passed" ;;
+              skipped)  echo "⏭️ Skipped" ;;
+              *)        echo "❌ Failed" ;;
+            esac
+          }
+
+          echo "## Integration Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Daytona | $(status '${{ needs.daytona-integration.result }}') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Gemini Text | $(status '${{ needs.gemini-integration.result }}') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Gemini Live TTS | $(status '${{ needs.gemini-live-integration.result }}') |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Required Secrets" >> $GITHUB_STEP_SUMMARY
+          echo "- \`DAYTONA_API_KEY\` + \`DAYTONA_API_URL\` — Daytona sandbox" >> $GITHUB_STEP_SUMMARY
+          echo "- \`GOOGLE_AI_API_KEY\` — Gemini text generation" >> $GITHUB_STEP_SUMMARY
+          echo "- \`GEMINI_API_KEY\` — Gemini Live / TTS" >> $GITHUB_STEP_SUMMARY

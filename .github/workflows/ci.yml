@@ -1,0 +1,247 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── Quality Gate ───────────────────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - name: Run ESLint
+        run: npm run lint
+
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - name: Run TypeScript compiler
+        run: npx tsc --noEmit
+
+  # ─── Tests ──────────────────────────────────────────────────────
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - name: Run unit tests with coverage
+        run: npx vitest run --coverage --reporter=verbose
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+  # ─── Build ──────────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - name: Build Next.js application
+        run: npm run build
+
+  # ─── E2E Smoke Tests ───────────────────────────────────────────
+  e2e:
+    name: E2E Smoke Tests
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - name: Build application
+        run: npm run build
+      - name: Start server and test all pages
+        run: |
+          npm run start &
+          SERVER_PID=$!
+
+          # Wait for server readiness
+          echo "Waiting for server..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000 > /dev/null 2>&1; then
+              echo "Server is ready!"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "::error::Server failed to start within 60s"
+              kill $SERVER_PID 2>/dev/null || true
+              exit 1
+            fi
+            sleep 2
+          done
+
+          FAILED=0
+
+          # Test all application routes
+          for route in "/" "/interview" "/practice" "/test-agent" "/system-design"; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3000${route}")
+            if [ "$STATUS" = "200" ]; then
+              echo "  ${route} — 200 OK"
+            else
+              echo "::error::${route} returned HTTP ${STATUS}"
+              FAILED=1
+            fi
+          done
+
+          # Test API health (should return valid responses, not 500)
+          for api_route in "/api/auth/session"; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3000${api_route}")
+            if [ "$STATUS" -lt 500 ]; then
+              echo "  ${api_route} — ${STATUS} (no server error)"
+            else
+              echo "::error::${api_route} returned HTTP ${STATUS}"
+              FAILED=1
+            fi
+          done
+
+          kill $SERVER_PID 2>/dev/null || true
+
+          if [ "$FAILED" -ne 0 ]; then
+            exit 1
+          fi
+          echo "All routes healthy"
+
+  # ─── Security ───────────────────────────────────────────────────
+  security:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - name: Audit production dependencies
+        run: npm audit --omit=dev || true
+        # Non-blocking: logs vulnerabilities without failing the build.
+        # Change "|| true" to a hard fail once existing advisories are resolved.
+
+  # ─── Verify Feature Files ──────────────────────────────────────
+  verify-features:
+    name: Verify Feature Files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check core implementation files exist
+        run: |
+          MISSING=0
+          for f in \
+            src/lib/gemini-live-client.ts \
+            src/lib/gemini-tools.ts \
+            src/lib/gemini.ts \
+            src/lib/interview-live-client.ts \
+            src/lib/system-design-live-client.ts \
+            src/lib/system-design-store.ts \
+            src/lib/system-design-prompt.ts \
+            src/lib/mermaid-parser.ts \
+            src/lib/rate-limiter.ts \
+            src/lib/schemas.ts \
+            src/lib/code-history.ts \
+            src/lib/error-messages.ts \
+            src/lib/store.ts \
+            src/lib/daytona.ts \
+            src/middleware.ts \
+            src/components/workspace/WorkspaceProgressIndicator.tsx \
+            src/components/agent/InterviewAgent.tsx \
+            src/components/agent/SystemDesignAgent.tsx \
+            src/components/diagram/MermaidDiagramCanvas.tsx \
+            src/app/page.tsx \
+            src/app/interview/page.tsx \
+            src/app/practice/page.tsx \
+            src/app/system-design/page.tsx; do
+            if [ ! -f "$f" ]; then
+              echo "::error::Missing file: $f"
+              MISSING=1
+            fi
+          done
+          if [ "$MISSING" -ne 0 ]; then
+            exit 1
+          fi
+          echo "All core files present"
+
+      - name: Verify key integrations wired up
+        run: |
+          grep -q "InterviewLiveClient" src/components/agent/InterviewAgent.tsx
+          echo "InterviewAgent uses InterviewLiveClient"
+          grep -q "interview-live-client" src/components/agent/InterviewAgent.tsx
+          echo "InterviewAgent imports from interview-live-client"
+          grep -q "@google/genai" package.json
+          echo "@google/genai dependency present"
+          grep -q "@daytonaio/sdk" package.json
+          echo "@daytonaio/sdk dependency present"
+          grep -q "workspaceStatus" src/lib/store.ts
+          echo "Store has workspaceStatus field"
+          grep -q "mermaid" package.json
+          echo "Mermaid dependency present"
+
+  # ─── Summary ────────────────────────────────────────────────────
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, unit-tests, build, e2e, security, verify-features]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## CI Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Lint | ${{ needs.lint.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Type Check | ${{ needs.typecheck.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Unit Tests | ${{ needs.unit-tests.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ needs.build.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E Smoke | ${{ needs.e2e.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Audit | ${{ needs.security.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Feature Files | ${{ needs.verify-features.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if critical jobs failed
+        if: |
+          needs.lint.result == 'failure' ||
+          needs.typecheck.result == 'failure' ||
+          needs.unit-tests.result == 'failure' ||
+          needs.build.result == 'failure' ||
+          needs.e2e.result == 'failure'
+        run: |
+          echo "::error::One or more critical CI checks failed"
+          exit 1
