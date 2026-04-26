@@ -16,7 +16,7 @@ import { authFetch, initSession } from '@/lib/api-client';
 import { categoryEmoji } from '@/lib/visual-observations';
 
 export function InterviewAgent() {
-    const { code, workspaceId, workspaceStatus, interviewMode, currentProblemId, selectedCompanyId, setAgentDisconnect, visualObservations } = useInterviewStore();
+    const { code, workspaceId, workspaceStatus, interviewMode, currentProblemId, selectedCompanyId, setAgentDisconnect, visualObservations, breakUntilMs, setBreakUntilMs } = useInterviewStore();
     const [, setNowTick] = useState(0);
     const [isThinking, setIsThinking] = useState(false);
     const [currentAction, setCurrentAction] = useState<string>('');
@@ -42,6 +42,30 @@ export function InterviewAgent() {
         const id = setInterval(() => setNowTick((n) => n + 1), 1000);
         return () => clearInterval(id);
     }, [latestObs]);
+
+    // Break countdown tick + auto-clear when expired
+    const onBreak = breakUntilMs !== null && breakUntilMs > Date.now();
+    useEffect(() => {
+        if (!breakUntilMs) return;
+        const id = setInterval(() => {
+            setNowTick((n) => n + 1);
+            if (Date.now() >= breakUntilMs) {
+                setBreakUntilMs(null);
+            }
+        }, 1000);
+        return () => clearInterval(id);
+    }, [breakUntilMs, setBreakUntilMs]);
+
+    // Listen for tool-driven 'interview:end' to disconnect like the Stop button
+    useEffect(() => {
+        const onEnd = () => {
+            if (clientRef.current) {
+                clientRef.current.disconnect();
+            }
+        };
+        window.addEventListener('interview:end', onEnd);
+        return () => window.removeEventListener('interview:end', onEnd);
+    }, []);
 
     // Tool handler - always gets fresh state to avoid closure issues
     const handleToolsCall = useCallback(async (functionCalls: any[]) => {
@@ -348,8 +372,24 @@ export function InterviewAgent() {
             )}
 
             <div className="flex flex-col gap-3 p-4 border rounded-xl bg-card">
-                <div className="w-full min-w-0 flex flex-col gap-2">
+                <div className="w-full min-w-0 flex flex-col gap-2 relative">
                     <SpatialRealAvatar audioBus={audioBus} className="w-full h-48 rounded-xl bg-zinc-900 overflow-hidden" />
+                    {onBreak && breakUntilMs !== null && (
+                        <div className="absolute top-2 left-2 right-2 z-10 bg-amber-900/80 border border-amber-500/50 text-amber-100 text-xs rounded-md px-3 py-2 flex items-center justify-between backdrop-blur-sm">
+                            <span className="flex items-center gap-2">
+                                <MicOff className="w-3 h-3" />
+                                On break
+                            </span>
+                            <span className="font-mono">
+                                back in {(() => {
+                                    const remaining = Math.max(0, Math.ceil((breakUntilMs - Date.now()) / 1000));
+                                    const m = Math.floor(remaining / 60);
+                                    const s = remaining % 60;
+                                    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                                })()}
+                            </span>
+                        </div>
+                    )}
                     <SelfView
                         className="w-full h-48 rounded-xl bg-zinc-900 overflow-hidden"
                         onFrame={handleVideoFrame}

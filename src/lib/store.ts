@@ -163,6 +163,10 @@ interface InterviewState {
   // End interview callback (for agent-triggered interview ending)
   onEndInterview: (() => void) | null;
   setOnEndInterview: (fn: (() => void) | null) => void;
+
+  // Voice-controlled break
+  breakUntilMs: number | null;
+  setBreakUntilMs: (ms: number | null) => void;
 }
 
 export const useInterviewStore = create<InterviewState>()(
@@ -175,6 +179,7 @@ export const useInterviewStore = create<InterviewState>()(
         status: 'active',
         interviewStartTime: Date.now(),
         visualObservations: [],
+        breakUntilMs: null,
       }),
       endSession: () => set({ status: 'completed' }),
       setStatus: (status) => set({ status }),
@@ -311,6 +316,10 @@ export const useInterviewStore = create<InterviewState>()(
       // End interview callback
       onEndInterview: null,
       setOnEndInterview: (fn) => set({ onEndInterview: fn }),
+
+      // Voice-controlled break
+      breakUntilMs: null,
+      setBreakUntilMs: (ms) => set({ breakUntilMs: ms }),
     }),
     {
       name: 'interview-storage',

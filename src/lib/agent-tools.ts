@@ -353,6 +353,103 @@ export const getAgentTools = () => ({
         return { ok: true };
     }),
 
+    end_interview_now: wrapTool('end_interview_now', async () => {
+        const store = useInterviewStore.getState();
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('interview:end'));
+        }
+        setTimeout(() => {
+            store.agentDisconnect?.();
+            store.onEndInterview?.();
+        }, 1500);
+        return { ok: true };
+    }),
+
+    skip_to_next_problem: wrapTool('skip_to_next_problem', async () => {
+        const store = useInterviewStore.getState();
+        const { selectedCompanyId, currentProblemId } = store;
+        const current = getCurrentProblem();
+        if (!current) return { ok: false, reason: 'no_current_problem' };
+
+        let pool: (Problem | CompanyProblem)[] = [];
+        if (selectedCompanyId) {
+            const company = COMPANIES.find(c => c.id === selectedCompanyId);
+            if (company) pool = company.problems;
+            else pool = getAllCompanyProblems();
+        } else {
+            pool = getAllCompanyProblems();
+        }
+
+        const sameDifficulty = pool.filter(
+            p => p.difficulty === current.difficulty && p.id !== currentProblemId
+        );
+        if (sameDifficulty.length === 0) {
+            return { ok: false, reason: 'no_more_same_difficulty' };
+        }
+        const next = sameDifficulty[Math.floor(Math.random() * sameDifficulty.length)];
+        store.setCurrentProblemId(next.id);
+        return {
+            ok: true,
+            nextProblem: { id: next.id, title: next.title, difficulty: next.difficulty },
+        };
+    }),
+
+    change_difficulty: wrapTool('change_difficulty', async ({ direction }: { direction: 'easier' | 'harder' }) => {
+        const store = useInterviewStore.getState();
+        const { selectedCompanyId, currentProblemId } = store;
+        const current = getCurrentProblem();
+
+        const order: Array<'Easy' | 'Medium' | 'Hard'> = ['Easy', 'Medium', 'Hard'];
+        const currentIdx = current ? order.indexOf(current.difficulty as 'Easy' | 'Medium' | 'Hard') : 1;
+        let targetIdx: number;
+        if (direction === 'easier') {
+            targetIdx = Math.max(0, currentIdx - 1);
+        } else {
+            targetIdx = Math.min(order.length - 1, currentIdx + 1);
+        }
+        const targetDifficulty = order[targetIdx];
+
+        let pool: (Problem | CompanyProblem)[] = [];
+        if (selectedCompanyId) {
+            const company = COMPANIES.find(c => c.id === selectedCompanyId);
+            if (company) pool = company.problems;
+            else pool = getAllCompanyProblems();
+        } else {
+            pool = getAllCompanyProblems();
+        }
+
+        const candidates = pool.filter(
+            p => p.difficulty === targetDifficulty && p.id !== currentProblemId
+        );
+        if (candidates.length === 0) {
+            return { ok: false, reason: 'no_problems_at_difficulty' };
+        }
+        const next = candidates[Math.floor(Math.random() * candidates.length)];
+        store.setCurrentProblemId(next.id);
+        return {
+            ok: true,
+            nextProblem: { id: next.id, title: next.title, difficulty: next.difficulty },
+        };
+    }),
+
+    take_break: wrapTool('take_break', async ({ seconds }: { seconds: number }) => {
+        const capped = Math.max(0, Math.min(600, Math.floor(seconds || 0)));
+        const until = Date.now() + capped * 1000;
+        useInterviewStore.getState().setBreakUntilMs(until);
+        return { ok: true, seconds: capped };
+    }),
+
+    repeat_question: wrapTool('repeat_question', async () => {
+        const problem = getCurrentProblem();
+        if (!problem) return { ok: false, reason: 'no_current_problem' };
+        return {
+            problemTitle: problem.title,
+            problemDescription: problem.description,
+            examples: problem.examples,
+            constraints: problem.constraints,
+        };
+    }),
+
     end_interview: wrapTool('end_interview', async () => {
         console.log("🏁 Agent triggered end_interview");
         const store = useInterviewStore.getState();
