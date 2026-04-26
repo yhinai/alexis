@@ -199,6 +199,16 @@ To develop the UI without spinning up real Docker containers or consuming API cr
 NEXT_PUBLIC_USE_MOCK_DAYTONA=true
 ```
 
+## 🛠️ Developer Tooling (Claude Code)
+
+This repo ships with project-local Claude Code automation under `.claude/`:
+
+- **`/verify-models`** — pings Gemini reasoning, TTS, the Live WebSocket, and the Daytona API using the model names from source. Run before demos.
+- **`/interview-debug`** — diagnostic playbook for the auth → key → WebSocket chain.
+- **`gemini-model-auditor`** subagent — flags hardcoded model names that are no longer in the API catalog.
+- **`daytona-sandbox-leak-checker`** subagent — finds sandbox create paths missing a guaranteed cleanup.
+- **Hooks** — block accidental `.env*` edits and run ESLint after every TypeScript edit.
+
 ## 🤝 Contributing
 
 1.  Fork the repository.
