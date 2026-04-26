@@ -4,6 +4,7 @@ import { useInterviewStore } from '@/lib/store';
 import { Button } from "@/components/ui/button";
 import { StatusIndicator } from './StatusIndicator';
 import { SpatialRealAvatar } from './SpatialRealAvatar';
+import { SelfView } from './SelfView';
 import { ThinkingIndicator } from './ThinkingIndicator';
 import { Mic, MicOff, GraduationCap } from 'lucide-react';
 import { useCallback, useEffect, useState, useRef } from 'react';
@@ -331,52 +332,55 @@ export function InterviewAgent() {
                 </div>
             )}
 
-            <div className="flex items-center gap-4 p-4 border rounded-xl bg-card">
-                <div className="flex flex-col items-center gap-2">
-                    <StatusIndicator status={status} isModelSpeaking={isModelSpeaking} />
-                    {status === 'connected' && !isModelSpeaking && isSpeaking && (
-                        <div className="flex items-center gap-1 text-[10px] text-emerald-400">
-                            <Mic className="w-2.5 h-2.5 animate-pulse" />
-                            <span>Mic active</span>
-                        </div>
+            <div className="flex flex-col gap-3 p-4 border rounded-xl bg-card">
+                <div className="w-full min-w-0 flex flex-col gap-2">
+                    <SpatialRealAvatar audioBus={audioBus} className="w-full h-48 rounded-xl bg-zinc-900 overflow-hidden" />
+                    <SelfView className="w-full h-48 rounded-xl bg-zinc-900 overflow-hidden" />
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-col gap-1">
+                        <StatusIndicator status={status} isModelSpeaking={isModelSpeaking} />
+                        {status === 'connected' && !isModelSpeaking && isSpeaking && (
+                            <div className="flex items-center gap-1 text-[10px] text-emerald-400">
+                                <Mic className="w-2.5 h-2.5 animate-pulse" />
+                                <span>Mic active</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {status === 'connected' ? (
+                        <Button variant="destructive" size="icon" onClick={handleStop}>
+                            <MicOff className="w-4 h-4" />
+                        </Button>
+                    ) : status === 'connecting' ? (
+                        <Button variant="outline" disabled>
+                            <Mic className="w-4 h-4 mr-2 animate-pulse" />
+                            Connecting...
+                        </Button>
+                    ) : workspaceStatus !== 'ready' ? (
+                        <Button variant="outline" disabled>
+                            {interviewMode === 'practice' ? (
+                                <GraduationCap className="w-4 h-4 mr-2" />
+                            ) : (
+                                <Mic className="w-4 h-4 mr-2" />
+                            )}
+                            Waiting for workspace...
+                        </Button>
+                    ) : (
+                        <Button
+                            variant="default"
+                            onClick={handleStart}
+                        >
+                            {interviewMode === 'practice' ? (
+                                <GraduationCap className="w-4 h-4 mr-2" />
+                            ) : (
+                                <Mic className="w-4 h-4 mr-2" />
+                            )}
+                            Reconnect
+                        </Button>
                     )}
                 </div>
-
-                <div className="flex-1 w-full min-w-0">
-                    <SpatialRealAvatar audioBus={audioBus} className="w-full h-32 rounded-xl bg-zinc-900 overflow-hidden" />
-                </div>
-
-                {status === 'connected' ? (
-                    <Button variant="destructive" size="icon" onClick={handleStop}>
-                        <MicOff className="w-4 h-4" />
-                    </Button>
-                ) : status === 'connecting' ? (
-                    <Button variant="outline" disabled>
-                        <Mic className="w-4 h-4 mr-2 animate-pulse" />
-                        Connecting...
-                    </Button>
-                ) : workspaceStatus !== 'ready' ? (
-                    <Button variant="outline" disabled>
-                        {interviewMode === 'practice' ? (
-                            <GraduationCap className="w-4 h-4 mr-2" />
-                        ) : (
-                            <Mic className="w-4 h-4 mr-2" />
-                        )}
-                        Waiting for workspace...
-                    </Button>
-                ) : (
-                    <Button
-                        variant="default"
-                        onClick={handleStart}
-                    >
-                        {interviewMode === 'practice' ? (
-                            <GraduationCap className="w-4 h-4 mr-2" />
-                        ) : (
-                            <Mic className="w-4 h-4 mr-2" />
-                        )}
-                        Reconnect
-                    </Button>
-                )}
             </div>
         </div>
     );
