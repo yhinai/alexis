@@ -1,4 +1,8 @@
 {
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "teammateMode": "auto",
   "hooks": {
     "SessionStart": [
       {
@@ -17,6 +21,15 @@
           {
             "type": "command",
             "command": "jq -r '.tool_input.file_path // empty' | grep -qE '/\\.env(\\.[^/]+)?$' && { echo 'Refusing to edit .env file. Use the shell directly if you really need to modify it.' >&2; exit 2; } || exit 0"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/branch-policy.sh\""
           }
         ]
       },

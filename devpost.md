@@ -20,7 +20,7 @@
 ## Tagline
 An AI interviewer that **watches you code**, **listens to your reasoning**, and **runs your solution in secure Daytona sandboxes**—delivering **94% consistency** and **50% time savings** over traditional interviews.
 
-**Built for the Daytona x Google Gemini x CodeRabbit Hackathon**: Each sponsor technology plays an irreplaceable, deeply-integrated role in making Alexis possible.
+**Built for the 2026 BETA Hackathon** (Berkeley Emerging Technology Association, Frontier Tower SF, April 26, 2026), Voice & Vision track: Each integrated technology plays an irreplaceable, deeply-integrated role in making Alexis possible.
 
 ---
 
@@ -624,6 +624,6 @@ The future of technical hiring is:
 
 ---
 
-*Built with passion for the Daytona x Google Gemini x CodeRabbit Hackathon*
+*Built with passion for the 2026 BETA Hackathon -- Berkeley Emerging Technology Association, Frontier Tower SF, April 26, 2026, Voice & Vision track*
 
 *Transforming technical interviews from subjective guesswork to data-driven excellence.*

@@ -44,4 +44,7 @@ next-env.d.ts
 .omc/
 .cursor/
 .claude/settings.local.json
-.claude/hooks/
+# Ignore contents of .claude/hooks/ but allow traversal so the line below can re-include.
+.claude/hooks/*
+# Tracked exception: branch policy hook is project-wide and must travel with the repo.
+!.claude/hooks/branch-policy.sh
