@@ -96,10 +96,34 @@ export function SpatialRealAvatar({ audioBus, className }: Props) {
                 await view.controller.start();
                 if (cancelled) return;
 
+                // Buffer one chunk so we can attach end=true to the last *non-empty*
+                // audio chunk of a turn. AvatarKit's controller.send rejects an
+                // empty buffer with end=true ("unexpected reqId, no audio
+                // normalizer created") which then closes the WS with code 1006,
+                // because the empty payload kicks off a new reqId that has no
+                // associated normalizer. Holding back one chunk costs ~1 PCM frame
+                // of latency but guarantees end=true rides on real audio.
+                let pending: ArrayBuffer | null = null;
                 unsubscribe = audioBus!.subscribe((chunk, end) => {
                     if (!view) return;
                     try {
-                        view.controller.send(chunk, end);
+                        if (chunk.byteLength === 0) {
+                            if (end && pending) {
+                                view.controller.send(pending, true);
+                                pending = null;
+                            }
+                            // empty + !end, or empty end with nothing pending: drop.
+                            return;
+                        }
+                        if (pending) {
+                            view.controller.send(pending, false);
+                        }
+                        if (end) {
+                            view.controller.send(chunk, true);
+                            pending = null;
+                        } else {
+                            pending = chunk;
+                        }
                     } catch (err) {
                         console.error('SpatialReal send failed:', err);
                     }
