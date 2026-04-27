@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "crons": [
+    { "path": "/api/cron/sandbox-cleanup", "schedule": "*/15 * * * *" }
+  ],
+  "functions": {
+    "src/app/api/interview/report/route.ts": { "maxDuration": 60 },
+    "src/app/api/practice/feedback/route.ts": { "maxDuration": 60 },
+    "src/app/api/analysis/coderabbit/route.ts": { "maxDuration": 60 },
+    "src/app/api/analysis/review/route.ts": { "maxDuration": 60 },
+    "src/app/api/analysis/autofix/route.ts": { "maxDuration": 60 }
+  }
+}

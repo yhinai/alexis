@@ -39,6 +39,31 @@ export async function GET(req: NextRequest) {
         );
     }
 
+    // Use || (not ??) so an env var set to the empty string falls back to
+    // 'direct' — otherwise `''` would survive `??` and fail the unknown-mode
+    // check below, breaking deployments that have GEMINI_AUTH_MODE= in .env.
+    const rawMode = process.env.GEMINI_AUTH_MODE;
+    const mode = (rawMode && rawMode.trim() ? rawMode : 'direct').toLowerCase();
+
+    if (mode === 'ephemeral') {
+        return NextResponse.json(
+            {
+                error: 'Ephemeral auth mode not yet implemented',
+                code: 'EPHEMERAL_NOT_READY',
+                hint: 'Set GEMINI_AUTH_MODE=direct or implement ai.authTokens.create',
+            },
+            { status: 501 }
+        );
+    }
+
+    if (mode !== 'direct') {
+        return NextResponse.json({ error: `Unknown GEMINI_AUTH_MODE: ${mode}` }, { status: 500 });
+    }
+
+    // Direct mode — returns the raw key. Tracked as a known security debt;
+    // gate behind GEMINI_AUTH_MODE=ephemeral once SDK ephemeral tokens land.
+    console.warn('[security] /api/gemini/session returned raw API key (GEMINI_AUTH_MODE=direct).');
+
     return NextResponse.json({
         success: true,
         data: { apiKey: apiKey.trim() },

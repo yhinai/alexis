@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { Daytona, Sandbox, CreateSandboxFromSnapshotParams } from '@daytonaio/sdk';
 import {
   DEFAULT_AUTO_STOP_INTERVAL,
@@ -60,33 +61,31 @@ export interface FileInfo {
 // ============================================================================
 
 /**
- * Validates and sanitizes a file path to prevent directory traversal attacks.
- * Allows absolute paths since they are valid within an isolated sandbox environment.
- * @throws Error if the path is invalid or potentially malicious
+ * Validates a sandbox-bound file path. Throws on traversal attempts or paths
+ * that escape the allow-listed bases. Returns the ORIGINAL string unchanged
+ * so callers (and the underlying SDK) keep their existing relative-path
+ * semantics — e.g. `'main.py'` stays `'main.py'`, not `/workspace/main.py`,
+ * which matters when the sandbox's CWD is the implicit anchor.
+ *
+ * Resolution is performed only internally for the traversal check.
+ *
+ * @throws Error if the path is invalid or escapes the allow-list
  */
-function sanitizePath(path: string): string {
-  if (!path || typeof path !== 'string') {
-    throw new Error('Invalid path: path cannot be empty');
+const ALLOWED_BASES = ['/workspace', '/tmp'] as const;
+function sanitizePath(p: string): string {
+  if (typeof p !== 'string' || p.length === 0) throw new Error('Path must be a non-empty string');
+  if (p.includes('\0')) throw new Error('Path contains NUL byte');
+  const base = path.posix.isAbsolute(p) ? '/' : '/workspace';
+  const resolved = path.posix.resolve(base, p);
+  const allowed = ALLOWED_BASES.some(b => resolved === b || resolved.startsWith(b + '/'));
+  if (!allowed) {
+    throw new Error(
+      `Path '${p}' resolves outside allowed bases (${ALLOWED_BASES.join(', ')}); directory traversal blocked.`
+    );
   }
-
-  // Check for directory traversal attempts
-  if (path.includes('..')) {
-    throw new Error('Invalid path: directory traversal sequences (..) are not allowed');
-  }
-
-  // Check for null bytes (security issue)
-  if (path.includes('\0')) {
-    throw new Error('Invalid path: null bytes are not allowed');
-  }
-
-  // Allow alphanumeric, underscore, dash, dot, and forward slash
-  // Absolute paths starting with / are allowed in sandbox environments
-  const validPathPattern = /^[a-zA-Z0-9_\-./]+$/;
-  if (!validPathPattern.test(path)) {
-    throw new Error('Invalid path: only alphanumeric characters, underscore, dash, dot, and forward slash are allowed');
-  }
-
-  return path;
+  // Return the original string — callers depend on the SDK's relative-path
+  // semantics. The check above is purely defensive.
+  return p;
 }
 
 /**
@@ -240,7 +239,14 @@ export class DaytonaService {
         networkAllowList: options.networkAllowList,
         autoStopInterval: options.autoStopInterval ?? DEFAULT_AUTO_STOP_INTERVAL,
         autoArchiveInterval: options.autoArchiveInterval ?? DEFAULT_AUTO_ARCHIVE_INTERVAL,
-        labels: options.labels,
+        labels: {
+          // Spread caller-supplied labels first, then enforce our own keys
+          // so a caller cannot override `app` (which the sandbox reaper uses
+          // to identify our sandboxes) or `createdAt`.
+          ...(options.labels ?? {}),
+          app: 'alexis',
+          createdAt: String(Date.now()),
+        },
         envVars: options.envVars,
       };
 
@@ -249,32 +255,37 @@ export class DaytonaService {
         { timeout: options.timeout ?? DEFAULT_CREATE_TIMEOUT }
       );
 
-      // Optionally install CodeRabbit CLI
-      if (options.installCodeRabbit !== false) {
-        try {
-          console.log(`Installing CodeRabbit CLI in workspace ${workspace.id}...`);
-          const timeoutSec = Math.ceil(CODERABBIT_INSTALL_TIMEOUT / 1000);
-          const result = await workspace.process.executeCommand(
-            CODERABBIT_INSTALL_CMD,
-            undefined,
-            undefined,
-            timeoutSec
-          );
-          if (result.exitCode !== 0) {
-            console.warn(`CodeRabbit CLI installation returned non-zero exit code: ${result.exitCode}`);
+      try {
+        // Optionally install CodeRabbit CLI
+        if (options.installCodeRabbit !== false) {
+          try {
+            console.log(`Installing CodeRabbit CLI in workspace ${workspace.id}...`);
+            const timeoutSec = Math.ceil(CODERABBIT_INSTALL_TIMEOUT / 1000);
+            const result = await workspace.process.executeCommand(
+              CODERABBIT_INSTALL_CMD,
+              undefined,
+              undefined,
+              timeoutSec
+            );
+            if (result.exitCode !== 0) {
+              console.warn(`CodeRabbit CLI installation returned non-zero exit code: ${result.exitCode}`);
+            }
+          } catch (error) {
+            console.warn('CodeRabbit CLI installation failed (non-fatal):', error);
+            // Don't fail workspace creation if CodeRabbit install fails
           }
-        } catch (error) {
-          console.warn('CodeRabbit CLI installation failed (non-fatal):', error);
-          // Don't fail workspace creation if CodeRabbit install fails
         }
-      }
 
-      return {
-        id: workspace.id,
-        language: options.language,
-        name: workspace.name,
-        labels: workspace.labels,
-      };
+        return {
+          id: workspace.id,
+          language: options.language,
+          name: workspace.name,
+          labels: workspace.labels,
+        };
+      } catch (err) {
+        try { await workspace.delete(); } catch {}
+        throw err;
+      }
     }, DEFAULT_RETRY_CONFIG, 'createWorkspace');
   }
 
