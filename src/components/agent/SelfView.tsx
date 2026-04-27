@@ -82,7 +82,7 @@ export function SelfView({ className, onFrame, onCameraStateChange }: Props) {
             const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
             const base64 = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
             onFrame(base64);
-        }, 1000);
+        }, 3000);
 
         return () => clearInterval(intervalId);
     }, [onFrame, state]);
