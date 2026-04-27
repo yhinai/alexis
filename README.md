@@ -20,7 +20,11 @@ No clicks. No silence. No honor system.
 
 [![Alexis — see, hear, react](docs/screenshots/hero.jpg)](https://youtu.be/i8bS2GoSpwA)
 
-🌐 **Live:** [alexis-code.vercel.app](https://alexis-code.vercel.app/) · ▶ **Watch:** [youtu.be/i8bS2GoSpwA](https://youtu.be/i8bS2GoSpwA) · 📊 **Slides:** [Google Slides](https://docs.google.com/presentation/d/1VYm6-1MB-f5Mos1foBsjGegSsH_-buWin-QHFJqqlRo/edit?usp=sharing)
+<p align="center">
+  <a href="https://alexis-code.vercel.app/"><img alt="Live Demo" src="https://img.shields.io/badge/🌐_Live_Demo-alexis--code.vercel.app-7c3aed?style=for-the-badge"/></a>
+  <a href="https://youtu.be/i8bS2GoSpwA"><img alt="Watch Demo" src="https://img.shields.io/badge/▶_Watch_Demo-YouTube-ff0000?style=for-the-badge&logo=youtube&logoColor=white"/></a>
+  <a href="https://docs.google.com/presentation/d/1VYm6-1MB-f5Mos1foBsjGegSsH_-buWin-QHFJqqlRo/edit?usp=sharing"><img alt="Slide Deck" src="https://img.shields.io/badge/📊_Slides-Google_Slides-fbbc04?style=for-the-badge&logo=googleslides&logoColor=white"/></a>
+</p>
 
 | Landing | Live interview |
 |:---:|:---:|
