@@ -21,7 +21,7 @@ No clicks. No silence. No honor system.
 ![Alexis demo](docs/demo.gif)
 *Alexis engaging in a real-time coding interview.*
 
-[https://alexis.example.com](https://alexis.example.com)
+[https://alexis-code.vercel.app/](https://alexis-code.vercel.app/)
 
 ## Why Alexis exists
 
