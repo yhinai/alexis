@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**Alexis / BetterThanLeet** -- An interactive, voice-guided AI technical interviewer. The candidate codes inside a Daytona sandbox while a Gemini Live agent observes, asks senior-engineer follow-ups, and produces a hire/no-hire report. The repo currently ships a working Next.js 16 prototype with a working interview flow, system-design surface, practice mode, and a final report. Treat it as hackathon-grade software with some production-shaped pieces, not a finished platform.
+**Alexis ** -- An interactive, voice-guided AI technical interviewer. The candidate codes inside a Daytona sandbox while a Gemini Live agent observes, asks senior-engineer follow-ups, and produces a hire/no-hire report. The repo currently ships a working Next.js 16 prototype with a working interview flow, system-design surface, practice mode, and a final report. Treat it as hackathon-grade software with some production-shaped pieces, not a finished platform.
 
 **Tagline:** "LeetCode can't ask follow-up questions. Alexis can."
 **Hackathon:** 2026 BETA Hackathon -- organized by the Berkeley Emerging Technology Association (BETA)
