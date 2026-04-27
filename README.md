@@ -1,42 +1,47 @@
 # 🎙️ Alexis — Voice + Vision AI Interviewer
 
-> **"LeetCode can't ask follow-up questions. Alexis can — and she watches you while she does."**
+> **AI interviewer that watches you code, listens to your reasoning, reads your body language, and adapts to your stress through real-time, human-like conversation.**
+
+<p>
+  <a href="https://alexis-code.vercel.app"><img alt="Live Demo" src="https://img.shields.io/badge/🌐_Live_Demo-alexis--code.vercel.app-7c3aed?style=for-the-badge"/></a>
+  <a href="https://youtu.be/73LkgN1fHfg"><img alt="Watch Demo" src="https://img.shields.io/badge/▶_Watch_Demo-YouTube-ff0000?style=for-the-badge&logo=youtube&logoColor=white"/></a>
+  <a href="https://docs.google.com/presentation/d/1VYm6-1MB-f5Mos1foBsjGegSsH_-buWin-QHFJqqlRo/edit?usp=sharing"><img alt="Slide Deck" src="https://img.shields.io/badge/📊_Slide_Deck-Google_Slides-fbbc04?style=for-the-badge&logo=googleslides&logoColor=white"/></a>
+  <a href="https://github.com/yhinai/alexis"><img alt="GitHub" src="https://img.shields.io/badge/💻_Repo-yhinai/alexis-181717?style=for-the-badge&logo=github"/></a>
+</p>
+
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
+![React](https://img.shields.io/badge/React-19-blue?logo=react)
+![Powered by](https://img.shields.io/badge/Powered_by-Gemini_Live_+_SpatialReal_+_Daytona-orange)
+
+---
+
+![Alexis landing page](docs/screenshots/landing.png)
+
+## 📖 The Pitch
+
+Text-based interviews fail to capture true engineering talent. **Alexis changes the game.** She is a live, multi-modal AI interviewer that doesn't just check your code — she watches you build it.
+
+> ### 🪄 The Magic
 >
-> A live, multi-modal AI interviewer with a 3D rendered face, real-time voice, and the eyes to notice when you're stuck, frustrated, or reaching for your phone.
+> Alexis **reads your body language** to detect frustration or cheating, **evaluates your real-time problem solving**, and **interacts with you** through fluid, natural voice commands.
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Live](https://img.shields.io/badge/live-alexis--code.vercel.app-purple)](https://alexis-code.vercel.app)
-![Next.js](https://img.shields.io/badge/Next.js-16-black)
-![React](https://img.shields.io/badge/React-19-blue)
-![Powered by](https://img.shields.io/badge/Powered%20by-Gemini%20Live%20%2B%20SpatialReal%20%2B%20Daytona-orange)
+![Alexis live interview — coding, lip-sync avatar, transcript, vision indicator](docs/screenshots/interview.png)
 
-🌐 **Live demo:** [https://alexis-code.vercel.app](https://alexis-code.vercel.app)
-
-## 📖 What It Is
-
-A technical interview that *speaks to you*, *sees you*, and *reacts*. Built for the **SpatialReal Voice & Vision Track** — judged on real-world impact, interaction fluidity, and architectural depth.
-
-Instead of a silent code editor and an autograder, Alexis:
-
-- **Speaks naturally** — full-duplex voice via Gemini Live native audio (~100 ms time-to-first-word)
-- **Watches the candidate** — webcam frames stream into the same model at 1 fps, so she picks up body language
-- **Renders a face** — SpatialReal AvatarKit lip-syncs a 3D avatar to her voice, on-device
-- **Acts on intent** — "skip this", "I need a break", "make it easier" → real system changes
-- **Codes in a real sandbox** — Daytona spins up an ephemeral container for every interview
-- **Generates a report** — final hire/no-hire writeup with visual observations timeline
+---
 
 ## ✨ Headline Features
 
 ### 🗣️ Voice
 - **Gemini Live native audio** — text + speech in one model, no separate TTS hop
-- **VAD + interruption-safe** — interrupt the AI mid-sentence, she stops and listens
+- **Full-duplex with VAD** — interrupt the AI mid-sentence, she stops and listens
 - **24 kHz PCM** end-to-end, lip-sync delay tuned to 500 ms so audio and animation land together
 
 ### 👁 Vision
-- **1 fps webcam stream** piped into the same Gemini Live WebSocket as audio
+- **1 fps webcam stream** piped into the same Gemini Live WebSocket as audio — Alexis literally *sees* you
 - **7 observation categories** that show up in the final report:
   - `away` — looking off-camera ≥5 s
-  - `integrity` — phone in hand, second monitor reads, another person in frame, mid-interview identity swap
+  - `integrity` — phone in hand, second-monitor reads, another person in frame, mid-interview identity swap
   - `stress` — sighs, slumped shoulders, head in hands (cascading response)
   - `engagement` — leaning in, smiling, gesturing
   - `aha` — visible "click" moment
@@ -49,9 +54,9 @@ Alexis doesn't just notice stress — she responds proportionally:
 | Severity | Trigger | Response |
 |---|---|---|
 | Mild | passing frown / one sigh | softer tone only |
-| Real | 3 s+ sustained frustration | acknowledge → unsolicited hint → record (medium) |
-| Severe | head in hands ≥3 s | acknowledge → `take_break(120s)` → record (high) |
-| Sustained | repeat pattern across 2 problems | `change_difficulty('easier')` → record (high) |
+| **Real** | 3 s+ sustained frustration | acknowledge → unsolicited hint → record (medium) |
+| **Severe** | head in hands ≥3 s | acknowledge → `take_break(120s)` → record (high) |
+| **Sustained** | repeat pattern across 2 problems | `change_difficulty('easier')` → record (high) |
 
 ### 🎙️ Voice-Controlled Flow
 The candidate steers the interview hands-free:
@@ -69,6 +74,8 @@ Anti-cheat without paranoia. Each cue gets a calm, scripted re-engagement and a 
 
 ### 📊 Final Report
 Hire / No-Hire writeup with: code-quality assessment, complexity analysis (Gemini 3.1 Pro), CodeRabbit review, and a **Visual Observations timeline** (mm:ss offsets, severity dots, and the actual notes Alexis recorded during the interview).
+
+---
 
 ## 🏗️ Architecture
 
@@ -93,7 +100,9 @@ User intent ──► Tool calls ──► Daytona sandbox / Problem swap / Brea
 | Sandboxed code execution | Daytona ephemeral workspaces |
 | Code review | CodeRabbit CLI inside the sandbox |
 | Error monitoring | Sentry |
-| Hosting | Vercel (`https://alexis-code.vercel.app`) |
+| Hosting | Vercel — [alexis-code.vercel.app](https://alexis-code.vercel.app) |
+
+---
 
 ## 🚀 Run Locally
 
@@ -141,6 +150,8 @@ bash .claude/skills/demo-checklist/run.sh
 
 One command checks all 7 stages: dev sessions, prod health, Gemini/Daytona/SpatialReal API health, every tool wired to a handler + prompt, sample-rate match, and WASM filename drift.
 
+---
+
 ## 🛠️ Developer Tooling (Claude Code)
 
 The repo ships project-local Claude Code automation under `.claude/`:
@@ -165,15 +176,17 @@ The repo ships project-local Claude Code automation under `.claude/`:
 
 **Hooks** — secret-diff scan on writes, env-status banner at session start, Vitest related on TS edits, API-route schema check, AvatarKit WASM drift detector, `.env*` edit refusal, deletion refusal on `public/spatialreal/`, Discord ping on git commit/push.
 
+---
+
 ## 📂 Project Structure
 
 ```
 src/
 ├── app/
 │   ├── api/               # rate-limited, session-auth'd routes
-│   │   ├── auth/session   # mint short-lived session token
-│   │   ├── gemini/session # mint Gemini key for the client
-│   │   ├── spatialreal/session # mint SpatialReal session JWT
+│   │   ├── auth/session
+│   │   ├── gemini/session
+│   │   ├── spatialreal/session
 │   │   ├── sandbox/*      # Daytona lifecycle + exec
 │   │   ├── analysis/*     # Gemini + CodeRabbit
 │   │   └── tts            # Gemini TTS for Wizard Mode
@@ -195,13 +208,15 @@ src/
     └── store.ts                    # Zustand session store
 ```
 
+---
+
 ## 🤝 Contributing
 
 1. Fork the repo
 2. Create a feature branch
 3. `npm run lint && npx tsc --noEmit && npm test`
 4. Run `bash .claude/skills/demo-checklist/run.sh` before opening a PR
-5. Open the PR — the auto-deploy hits Vercel preview
+5. Open the PR — auto-deploys to a Vercel preview URL
 
 ## 📜 License
 
