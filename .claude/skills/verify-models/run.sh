@@ -39,7 +39,7 @@ out=$(curl -fsS -m 20 -X POST \
   && echo "  ✅" || { echo "  ❌ $out"; fail=1; }
 
 echo "3/4 live websocket ($LIVE)"
-node --input-type=module -e "
+K="$KEY" M="$LIVE" node --input-type=module -e "
 const KEY = process.env.K, MODEL = process.env.M;
 const ws = new WebSocket(\`wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=\${KEY}\`);
 const t = setTimeout(() => { console.log('  ❌ TIMEOUT'); process.exit(2); }, 8000);
@@ -50,7 +50,6 @@ ws.addEventListener('message', async (e) => {
 });
 ws.addEventListener('close', (e) => { if (e.code !== 1000) { console.log(\`  ❌ \${e.code} \${e.reason.slice(0,160)}\`); process.exit(1); } });
 " || fail=1
-K="$KEY" M="$LIVE" : # no-op so vars are visible to the heredoc env
 
 echo "4/4 daytona ($DURL)"
 http=$(curl -s -o /dev/null -w "%{http_code}" -m 10 -H "Authorization: Bearer $DKEY" "$DURL/sandbox")
