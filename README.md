@@ -1,227 +1,207 @@
-# 🎙️ Alexis — Voice + Vision AI Interviewer
+# Alexis
 
-> **AI interviewer that watches you code, listens to your reasoning, reads your body language, and adapts to your stress through real-time, human-like conversation.**
+### The AI interviewer that sees you, hears you, and asks the question that exposes how you really think.
 
-[![Alexis — SpatialReal + Live Code](docs/screenshots/hero.jpg)](https://youtu.be/i8bS2GoSpwA)
+![Hackathon: SpatialReal Voice & Vision Track](https://img.shields.io/badge/Hackathon-SpatialReal_Voice_&_Vision_Track-magenta?style=for-the-badge)
+![Built with Next.js 16](https://img.shields.io/badge/Built%20with-Next.js%2016-black?logo=next.js)
+![React 19](https://img.shields.io/badge/React-19-blue?logo=react)
+![TypeScript strict](https://img.shields.io/badge/TypeScript-strict-blue?logo=typescript)
+![Powered by Gemini Live](https://img.shields.io/badge/Powered%20by-Gemini%20Live-orange?logo=google)
+![Spatial avatar by SpatialReal](https://img.shields.io/badge/Spatial%20avatar%20by-SpatialReal-cyan)
+![Daytona sandbox](https://img.shields.io/badge/Daytona-sandbox-yellow)
+![Tests passing](https://img.shields.io/badge/Tests-passing-success?logo=vitest)
+![License MIT](https://img.shields.io/badge/License-MIT-blue)
 
-<p align="center">
-  <a href="https://alexis-code.vercel.app"><img alt="Live Demo" src="https://img.shields.io/badge/🌐_Live_Demo-alexis--code.vercel.app-7c3aed?style=for-the-badge"/></a>
-  <a href="https://youtu.be/i8bS2GoSpwA"><img alt="Watch Demo" src="https://img.shields.io/badge/▶_Watch_Demo-YouTube-ff0000?style=for-the-badge&logo=youtube&logoColor=white"/></a>
-  <a href="https://docs.google.com/presentation/d/1VYm6-1MB-f5Mos1foBsjGegSsH_-buWin-QHFJqqlRo/edit?usp=sharing"><img alt="Slide Deck" src="https://img.shields.io/badge/📊_Slide_Deck-Google_Slides-fbbc04?style=for-the-badge&logo=googleslides&logoColor=white"/></a>
-  <a href="https://github.com/yhinai/alexis"><img alt="GitHub" src="https://img.shields.io/badge/💻_Repo-yhinai/alexis-181717?style=for-the-badge&logo=github"/></a>
-</p>
+Hiring is a conversation. Static tests are a monologue.
+Alexis is the AI that can hold the conversation — voice, vision, and live code execution in one continuous loop.
+No clicks. No silence. No honor system.
 
-<p align="center">
-  <img alt="License" src="https://img.shields.io/badge/license-MIT-blue.svg"/>
-  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-black?logo=next.js"/>
-  <img alt="React" src="https://img.shields.io/badge/React-19-blue?logo=react"/>
-  <img alt="Powered by" src="https://img.shields.io/badge/Powered_by-Gemini_Live_+_SpatialReal_+_Daytona-orange"/>
-</p>
+## Demo
 
----
+![Alexis demo](docs/demo.gif)
+*Alexis engaging in a real-time coding interview.*
 
-![Alexis landing page](docs/screenshots/landing.png)
+[https://alexis.example.com](https://alexis.example.com)
 
-## 📖 The Pitch
+## Why Alexis exists
 
-Text-based interviews fail to capture true engineering talent. **Alexis changes the game.** She is a live, multi-modal AI interviewer that doesn't just check your code — she watches you build it.
+- Traditional online tests are silent because machines couldn't hold a conversation; that constraint is gone; the interview that needed a face is now possible.
+- Code without context is meaningless — a senior engineer needs to know *why* a candidate made a specific design choice, not just if the tests pass.
+- Remote interviews lack physical presence and struggle with cheating, requiring a new approach that blends visual integrity checking with a natural, conversational flow.
 
-> ### 🪄 The Magic
->
-> Alexis **reads your body language** to detect frustration or cheating, **evaluates your real-time problem solving**, and **interacts with you** through fluid, natural voice commands.
+## Hackathon track fit
 
-![Alexis live interview — coding, lip-sync avatar, transcript, vision indicator](docs/screenshots/interview.png)
+### Native Application & Real-World Impact
+Alexis solves the technical interviewing problem natively by leveraging full-duplex voice, visual presence, and spatial awareness to replace the static text box.
+- Only voice surfaces "why" follow-ups.
+- Only vision (webcam + Gemini Vision observations) surfaces real integrity signals.
+- Only a spatial face makes the interview feel like an interview, not an interrogation.
+*(See `src/components/agent/SelfView.tsx`, `src/lib/visual-observations.ts`, `src/components/agent/SpatialRealAvatar.tsx`)*
 
----
+### Interaction Fluidity
+The system is built for ultra-low latency, natural pacing, and spontaneous interruptions.
+- Native-audio Gemini Live (no STT/TTS round trip) and VAD-driven barge-in with mid-sentence interruption.
+- Server-driven SpatialReal lip-sync keyframes that stay synced at 600+ ms RTT.
+- One canonical audio path (AvatarKit's internal player muted) to prevent double-voice, and one-chunk hold-back so end=true always rides on real audio.
+*(See `src/lib/interview-live-client.ts`, `src/components/agent/SpatialRealAvatar.tsx`)*
 
-## ✨ Headline Features
+### Architectural Depth
+The architecture tightly couples the real-time audio/visual layer with external sandbox actions.
+- Spoken intent → typed tool registry → Daytona / analysis / state, in the same event tick; voice-controlled break / end / repeat-question tools.
+- Sandbox lifecycle hardened with a server-side reaper (Vercel cron, label-paginated) so tab-close doesn't orphan workspaces.
+- Path sanitizer is a validate-only allow-list (`/workspace`, `/tmp`, NUL-byte blocked, traversal blocked); credential-mint endpoint behind aggressive rate-limit and `GEMINI_AUTH_MODE` flag staged for ephemeral-token migration.
+*(See `src/lib/agent-tools.ts`, `src/app/api/cron/sandbox-cleanup/route.ts`, `src/lib/daytona.ts`, `src/app/api/gemini/session/route.ts`)*
 
-### 🗣️ Voice
-- **Gemini Live native audio** — text + speech in one model, no separate TTS hop
-- **Full-duplex with VAD** — interrupt the AI mid-sentence, she stops and listens
-- **24 kHz PCM** end-to-end, lip-sync delay tuned to 500 ms so audio and animation land together
+## Architecture
 
-### 👁 Vision
-- **1 fps webcam stream** piped into the same Gemini Live WebSocket as audio — Alexis literally *sees* you
-- **7 observation categories** that show up in the final report:
-  - `away` — looking off-camera ≥5 s
-  - `integrity` — phone in hand, second-monitor reads, another person in frame, mid-interview identity swap
-  - `stress` — sighs, slumped shoulders, head in hands (cascading response)
-  - `engagement` — leaning in, smiling, gesturing
-  - `aha` — visible "click" moment
-  - `gesture` — finger counts, sketches, pointing
-  - `environment` — yawns, lighting changes (long-session cue)
+```mermaid
+flowchart LR
+    subgraph Candidate ["Candidate"]
+        Mic
+        Webcam
+        MonacoEditor["Monaco Editor"]
+    end
 
-### 🧠 Stress-Aware Cascade
-Alexis doesn't just notice stress — she responds proportionally:
+    subgraph Browser ["Browser (Next.js + React 19)"]
+        LiveWS["Gemini Live WebSocket client"]
+        AudioBus["Audio Bus"]
+        Avatar["SpatialReal WASM Avatar"]
+        VisionObserver["Vision Observer"]
+        Store["Code-State Store (Zustand)"]
+    end
 
-| Severity | Trigger | Response |
-|---|---|---|
-| Mild | passing frown / one sigh | softer tone only |
-| **Real** | 3 s+ sustained frustration | acknowledge → unsolicited hint → record (medium) |
-| **Severe** | head in hands ≥3 s | acknowledge → `take_break(120s)` → record (high) |
-| **Sustained** | repeat pattern across 2 problems | `change_difficulty('easier')` → record (high) |
+    subgraph Server ["Server (Vercel Fluid Compute)"]
+        APIRoutes["API Routes"]
+        DaytonaSandbox["Daytona Sandbox"]
+        GeminiPro["Gemini 3 Pro (analysis)"]
+        CodeRabbit
+        Sentry
+        CronReaper["Cron Reaper"]
+    end
 
-### 🎙️ Voice-Controlled Flow
-The candidate steers the interview hands-free:
-
-| Say | Tool fired | Effect |
-|---|---|---|
-| *"End the interview"* | `end_interview_now` | wraps up + opens the final report |
-| *"Skip this problem"* | `skip_to_next_problem` | swaps to a problem at the same difficulty |
-| *"Make it easier / harder"* | `change_difficulty` | swaps difficulty |
-| *"Take a 2-minute break"* | `take_break` | live countdown overlay on the avatar |
-| *"Repeat the question"* | `repeat_question` | re-states the problem |
-
-### 🛡️ Integrity Shield
-Anti-cheat without paranoia. Each cue gets a calm, scripted re-engagement and a record in the report — never an accusation.
-
-### 📊 Final Report
-Hire / No-Hire writeup with: code-quality assessment, complexity analysis (Gemini 3.1 Pro), CodeRabbit review, and a **Visual Observations timeline** (mm:ss offsets, severity dots, and the actual notes Alexis recorded during the interview).
-
----
-
-## 🏗️ Architecture
-
+    Mic --> AudioBus
+    Webcam --> VisionObserver
+    AudioBus --> LiveWS
+    VisionObserver --> LiveWS
+    LiveWS --> GeminiLive["Gemini Live"]
+    GeminiLive -->|"tool calls back"| LiveWS
+    LiveWS --> APIRoutes
+    APIRoutes --> DaytonaSandbox
+    APIRoutes -->|"analysis"| GeminiPro
+    CronReaper -->|"reaps Daytona by label app=alexis"| DaytonaSandbox
 ```
-🎤 Mic ──► Gemini Live WS ◄─── 📹 Webcam (1 fps JPEG)
-              │
-              ├─► 🔊 Web Audio (you HEAR it)
-              │
-              ├─► SpatialAudioBus ──► AvatarKit WS ──► 👀 3D Lip-sync render
-              │
-              └─► record_visual_observation tool ──► Final report timeline
+*Voice, vision, and code state are one event stream. The agent sees, hears, and runs code in the same tick.*
 
-User intent ──► Tool calls ──► Daytona sandbox / Problem swap / Break / Hint / End
-```
+## Features
 
-| Concern | Where it lives |
-|---|---|
-| Voice generation | Gemini Live (`gemini-2.5-flash-native-audio-preview-12-2025`) |
-| Reasoning + reports | Gemini 3.1 Pro (`gemini-3.1-pro-preview`) |
-| Wizard-mode TTS | Gemini 3.1 Flash TTS (`gemini-3.1-flash-tts-preview`) |
-| 3D avatar rendering | SpatialReal AvatarKit (on-device WASM + WebGL) |
-| Sandboxed code execution | Daytona ephemeral workspaces |
-| Code review | CodeRabbit CLI inside the sandbox |
-| Error monitoring | Sentry |
-| Hosting | Vercel — [alexis-code.vercel.app](https://alexis-code.vercel.app) |
+### Voice (full-duplex, interruptible)
+- Native-audio Gemini Live integration.
+- VAD barge-in for natural interruptions.
+- One-chunk hold-back for clean end-of-turn audio delivery.
 
----
+### Vision (presence + integrity)
+- Webcam `SelfView` for continuous candidate presence.
+- Gemini Vision observations periodically sampled.
+- Multi-signal integrity score (eye contact, off-screen attention, second-device detection), all streamed into the interview store.
 
-## 🚀 Run Locally
+### Spatial avatar (lipsync at network latency)
+- SpatialReal AvatarKit (~970KB WASM, prefetched) rendering high-fidelity 3D presence.
+- Server-driven keyframes ensuring visual sync.
+- Custom audio bus subscribed to the same PCM stream that drives the speakers.
+
+### Speech-to-Action (voice as the control plane)
+- Typed tool registry bound directly to the voice agent.
+- "Run it" → Daytona executeCode.
+- "Fix the syntax" → autofix with diff preview.
+- "I need a minute" → graceful break.
+- "End the interview" → report generation.
+
+## Quick start
 
 ### Prerequisites
-- Node.js 18+
-- API keys for: **Gemini** (Google AI Studio), **Daytona**, **SpatialReal**
+- Node 18+ (LTS)
+- Docker (only if running Daytona locally)
+- API keys for Daytona, Gemini, SpatialReal
 
-### Setup
-
+### Install
 ```bash
 git clone https://github.com/yhinai/alexis.git
 cd alexis
 npm install
-cp .env.example .env.local   # then fill in keys (see below)
-npm run dev                  # http://localhost:3000
 ```
+*(Note: Repo uses `legacy-peer-deps=true` via `.npmrc` for AvatarKit's peer conflict)*
 
-### Environment Variables
+### Configure
+Create a `.env.local` file with the following keys:
 
-```env
-# Gemini (one key for all three: voice, reasoning, TTS)
-GEMINI_API_KEY=AIza...
+| Variable | Required | Description |
+|---|---|---|
+| `DAYTONA_API_KEY` | Yes | Your Daytona API Key |
+| `DAYTONA_API_URL` | Yes | URL for Daytona Server |
+| `GEMINI_API_KEY` | Yes | Google Gemini API Key |
+| `SPATIALREAL_API_KEY` | Yes | SpatialReal API Key |
+| `SPATIALREAL_APP_ID` | Yes | SpatialReal App ID |
+| `NEXT_PUBLIC_SPATIALREAL_AVATAR_ID` | Yes | SpatialReal Avatar ID to render |
+| `SENTRY_AUTH_TOKEN` | No | Sentry token for error tracking |
+| `CRON_SECRET` | No | Required if deployed to Vercel for sandbox reaper |
+| `GEMINI_AUTH_MODE` | No | `direct` default; `ephemeral` when SDK ephemeral tokens land |
+| `NEXT_PUBLIC_USE_MOCK_DAYTONA` | No | `true` to run UI without a real Daytona container |
 
-# Daytona
-DAYTONA_API_KEY=dtn_...
-DAYTONA_API_URL=https://app.daytona.io/api
-
-# SpatialReal
-SPATIALREAL_APP_ID=app_...
-SPATIALREAL_API_KEY=sk-...
-NEXT_PUBLIC_SPATIALREAL_APP_ID=app_...
-NEXT_PUBLIC_SPATIALREAL_AVATAR_ID=ca9c5c22-6dba-4b59-ae3b-d26066f8c017
-
-# Optional
-NEXT_PUBLIC_USE_MOCK_DAYTONA=false
-SENTRY_AUTH_TOKEN=...
-DISCORD_WEBHOOK_URL=...   # for git-commit notifications via the dev hook
-```
-
-### Verify Everything Works
-
+### Run
 ```bash
-bash .claude/skills/demo-checklist/run.sh
+npm run dev
+```
+Navigate to http://localhost:3000 to start an interview.
+
+## Project structure
+
+```text
+/
+├── src/
+│   ├── app/
+│   │   ├── api/            # API routes (Gemini auth, sandbox cleanup, execution)
+│   │   └── interview/      # Main interview session pages
+│   ├── components/
+│   │   ├── agent/          # Agent UI (InterviewAgent.tsx, SystemDesignAgent.tsx, SpatialRealAvatar.tsx, SelfView.tsx, TranscriptPanel.tsx)
+│   │   └── editor/         # Code editor components
+│   └── lib/                # Core logic (interview-live-client.ts, daytona.ts, gemini.ts, visual-observations.ts, agent-tools.ts, code-history.ts, rate-limiter.ts, auth.ts, constants.ts)
+├── vercel.json             # Vercel deployment configuration and cron schedules
+└── plan.md                 # Project phase tracking and roadmap
 ```
 
-One command checks all 7 stages: dev sessions, prod health, Gemini/Daytona/SpatialReal API health, every tool wired to a handler + prompt, sample-rate match, and WASM filename drift.
+## Engineering you can verify
 
----
+- 93 tests passing, 0 failing (vitest)
+- 17 API routes, ~40 lib modules, ~50 components
+- Sandbox lifecycle: client cleanup is best-effort, server-side cron is the contract — see `src/app/api/cron/sandbox-cleanup/route.ts`
+- Path sanitizer: validate-only allow-list, NUL-blocked, traversal-blocked — see `src/lib/daytona.ts`
+- Credential-mint endpoint: rate-limited; `GEMINI_AUTH_MODE` flag staged for ephemeral tokens — see `src/app/api/gemini/session/route.ts`
+- Type-safe tool registry: no `(toolFunctions as any)[name]` anywhere
+- Phase plan tracked in `plan.md` (50+ items across 5 phases)
 
-## 🛠️ Developer Tooling (Claude Code)
+## Roadmap
 
-The repo ships project-local Claude Code automation under `.claude/`:
+### Now
+- Ephemeral Gemini auth tokens.
+- Candidate consent dialog.
+- Demo-day fallbacks (text-only voice, static avatar).
 
-**Skills (`/<name>` to invoke):**
-- `/demo-checklist` — pre-demo runbook
-- `/verify-models` — smoke-test every external service
-- `/verify-avatar` — smoke-test the SpatialReal pipeline
-- `/interview-debug` — diagnose voice-agent connection failures
-- `/swap-avatar` — switch the active avatar by ID
-- `/update-avatar-wasm` — re-sync the bundled WASM after package upgrades
-- `/mint-spatial-token` — print a fresh SpatialReal session JWT
-- `/env-doctor` — diff `.env.local` against required keys
-- `/release-snapshot` — tag + changelog + Discord ping
-- `/gen-test-from-route` — scaffold a Vitest suite from an API route
+### Next
+- `BaseLiveClient` extraction to deduplicate the three live-client modules.
+- Upstash Redis-backed rate limiter.
+- Server-authoritative session state.
 
-**Subagents:**
-- `gemini-model-auditor`, `daytona-sandbox-leak-checker`, `spatialreal-integration-auditor`
-- `auth-flow-auditor`, `prompt-injection-reviewer`, `api-contract-checker`
-- `accessibility-reviewer`, `tool-coverage-checker`, `avatar-perf-analyzer`
-- `middleware-to-proxy-migrator`
+### Later
+- Multi-language analyzers (TS, Go).
+- Interview replay with consent.
+- Keystroke + similarity-based integrity signals.
 
-**Hooks** — secret-diff scan on writes, env-status banner at session start, Vitest related on TS edits, API-route schema check, AvatarKit WASM drift detector, `.env*` edit refusal, deletion refusal on `public/spatialreal/`, Discord ping on git commit/push.
+## License
 
----
+This project is licensed under the MIT License.
 
-## 📂 Project Structure
+## Acknowledgements
 
-```
-src/
-├── app/
-│   ├── api/               # rate-limited, session-auth'd routes
-│   │   ├── auth/session
-│   │   ├── gemini/session
-│   │   ├── spatialreal/session
-│   │   ├── sandbox/*      # Daytona lifecycle + exec
-│   │   ├── analysis/*     # Gemini + CodeRabbit
-│   │   └── tts            # Gemini TTS for Wizard Mode
-│   └── interview/         # the live interview page
-├── components/
-│   ├── agent/             # Gemini Live client + UI (avatar, self-view)
-│   ├── editor/            # Monaco + Daytona file sync
-│   ├── interview/         # report dialog, controls, transcript
-│   └── analysis/          # review/metrics panels
-└── lib/
-    ├── interview-live-client.ts    # Gemini Live WebSocket
-    ├── spatial-audio-bus.ts        # pub/sub for avatar lip-sync feed
-    ├── visual-observations.ts      # report timeline types
-    ├── interviewer-prompt.ts       # Alexis's system prompt
-    ├── gemini-tools.ts             # 17 tool declarations
-    ├── agent-tools.ts              # tool handlers
-    ├── daytona.ts                  # sandbox client
-    ├── coderabbit.ts               # CodeRabbit integration
-    └── store.ts                    # Zustand session store
-```
-
----
-
-## 🤝 Contributing
-
-1. Fork the repo
-2. Create a feature branch
-3. `npm run lint && npx tsc --noEmit && npm test`
-4. Run `bash .claude/skills/demo-checklist/run.sh` before opening a PR
-5. Open the PR — auto-deploys to a Vercel preview URL
-
-## 📜 License
-
-MIT.
+- **SpatialReal** for sponsoring the Voice & Vision Track.
+- **Gemini Live Team** for the native-audio models.
+- **Daytona** for the sandboxed code execution infrastructure.

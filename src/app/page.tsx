@@ -10,11 +10,6 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-purple-100 dark:selection:bg-purple-900/50">
-      {/* Background Gradients */}
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 md:-top-[20%] left-[20%] w-[500px] h-[500px] bg-purple-100 dark:bg-purple-900 rounded-full blur-[120px] opacity-60 dark:opacity-20" />
-        <div className="absolute bottom-0 md:-bottom-[20%] right-[20%] w-[500px] h-[500px] bg-blue-100 dark:bg-blue-900 rounded-full blur-[120px] opacity-60 dark:opacity-20" />
-      </div>
 
       <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -33,23 +28,15 @@ export default function Home() {
 
         {/* Hero Section */}
         <div className="space-y-6 flex flex-col items-center max-w-4xl mx-auto">
-          {/* Disruptive Tagline */}
-          <div className="animate-slide-up-fade opacity-0" style={{ animationDelay: '0ms', animationFillMode: 'forwards' }}>
-            <p className="text-lg md:text-xl text-red-500 dark:text-red-400 font-semibold tracking-wide">
-              Traditional Interviews Are Dead.
-            </p>
-          </div>
-
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight flex flex-col items-center gap-2 pb-2">
             <span className="animate-slide-up-fade" style={{ animationDelay: '200ms' }}>Meet <span className="animate-color-wave font-extrabold tracking-tight">Alexis</span></span>
             <span className="animate-slide-up-fade delay-200 text-4xl md:text-6xl text-muted-foreground dark:text-foreground/70 font-normal" style={{ animationDelay: '400ms' }}>
-              Your AI Technical Interviewer, Alexis
+              Your AI Technical Interviewer
             </span>
           </h1>
 
           <p className="text-xl text-muted-foreground dark:text-foreground/60 max-w-2xl animate-slide-up-fade leading-relaxed" style={{ animationDelay: '400ms' }}>
-            LeetCode can't ask follow-up questions. Alexis can. Experience voice-first technical interviews
-            powered by Gemini 3 Pro with real-time coding and instant feedback.
+            Sees you. Hears you. Asks the question that exposes how you really think. Alexis is the voice-first, vision-aware AI interviewer with a spatial face, built for the conversations static tests can't have.
           </p>
 
           <div className="flex flex-wrap justify-center gap-4 animate-slide-up-fade" style={{ animationDelay: '600ms' }}>
@@ -66,7 +53,7 @@ export default function Home() {
                 System Design
               </Button>
             </Link>
-            <Link href="https://github.com/daytonaio/sdk" target="_blank">
+            <Link href="https://github.com/yhinai/alexis" target="_blank">
               <Button variant="ghost" size="lg" className="h-14 px-8 text-lg rounded-full transition-all duration-300">
                 View on GitHub
               </Button>
@@ -142,11 +129,16 @@ export default function Home() {
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-8">Built With</p>
           <div className="flex flex-wrap items-center justify-center gap-10 opacity-70">
             {[
-              { src: "/icons/gemini.png", alt: "Gemini", w: 100 },
-              { src: "/icons/daytona.png", alt: "Daytona", w: 100 },
-              { src: "/icons/coderabbit.png", alt: "CodeRabbit", w: 110 },
-              { src: "/icons/nextjs.png", alt: "Next.js", w: 80 },
+              { src: "/icons/gemini.png", alt: "Gemini", w: 100, isText: false },
+              { src: "/icons/daytona.png", alt: "Daytona", w: 100, isText: false },
+              { src: "", alt: "SpatialReal.ai", w: 140, isText: true },
+              { src: "/icons/nextjs.png", alt: "Next.js", w: 80, isText: false },
             ].map((logo) => (
+              logo.isText ? (
+                <span key={logo.alt} className="text-xl font-bold tracking-tight grayscale hover:grayscale-0 transition-all duration-300">
+                  {logo.alt}
+                </span>
+              ) : (
               <Image
                 key={logo.alt}
                 src={logo.src}
@@ -155,6 +147,7 @@ export default function Home() {
                 height={40}
                 className="h-8 w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300 dark:invert dark:hover:invert-0"
               />
+              )
             ))}
           </div>
         </div>
@@ -164,7 +157,7 @@ export default function Home() {
       <footer className="border-t py-12 bg-muted/20 relative z-10">
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm text-muted-foreground">
-            Built with Next.js, Daytona, Gemini Live, and CodeRabbit.
+            Built with Next.js, Daytona, Gemini Live, and SpatialReal.ai.
           </p>
         </div>
       </footer>
