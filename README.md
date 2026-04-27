@@ -2,17 +2,21 @@
 
 > **AI interviewer that watches you code, listens to your reasoning, reads your body language, and adapts to your stress through real-time, human-like conversation.**
 
-<p>
+[![Alexis — SpatialReal + Live Code](docs/screenshots/hero.jpg)](https://youtu.be/73LkgN1fHfg)
+
+<p align="center">
   <a href="https://alexis-code.vercel.app"><img alt="Live Demo" src="https://img.shields.io/badge/🌐_Live_Demo-alexis--code.vercel.app-7c3aed?style=for-the-badge"/></a>
   <a href="https://youtu.be/73LkgN1fHfg"><img alt="Watch Demo" src="https://img.shields.io/badge/▶_Watch_Demo-YouTube-ff0000?style=for-the-badge&logo=youtube&logoColor=white"/></a>
   <a href="https://docs.google.com/presentation/d/1VYm6-1MB-f5Mos1foBsjGegSsH_-buWin-QHFJqqlRo/edit?usp=sharing"><img alt="Slide Deck" src="https://img.shields.io/badge/📊_Slide_Deck-Google_Slides-fbbc04?style=for-the-badge&logo=googleslides&logoColor=white"/></a>
   <a href="https://github.com/yhinai/alexis"><img alt="GitHub" src="https://img.shields.io/badge/💻_Repo-yhinai/alexis-181717?style=for-the-badge&logo=github"/></a>
 </p>
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
-![React](https://img.shields.io/badge/React-19-blue?logo=react)
-![Powered by](https://img.shields.io/badge/Powered_by-Gemini_Live_+_SpatialReal_+_Daytona-orange)
+<p align="center">
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-blue.svg"/>
+  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-black?logo=next.js"/>
+  <img alt="React" src="https://img.shields.io/badge/React-19-blue?logo=react"/>
+  <img alt="Powered by" src="https://img.shields.io/badge/Powered_by-Gemini_Live_+_SpatialReal_+_Daytona-orange"/>
+</p>
 
 ---
 
