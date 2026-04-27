@@ -18,12 +18,22 @@ No clicks. No silence. No honor system.
 
 ## Demo
 
-[![Alexis — see, hear, react](docs/screenshots/hero.jpg)](https://youtu.be/i8bS2GoSpwA)
+<p align="center">
+  <a href="https://youtu.be/i8bS2GoSpwA">
+    <img src="https://img.youtube.com/vi/i8bS2GoSpwA/maxresdefault.jpg" alt="Watch the Alexis demo on YouTube" width="720"/>
+  </a>
+  <br/>
+  <em>▶ Click to watch the demo on YouTube</em>
+</p>
 
 <p align="center">
-  <a href="https://alexis-code.vercel.app/"><img alt="Live Demo" src="https://img.shields.io/badge/🌐_Live_Demo-alexis--code.vercel.app-7c3aed?style=for-the-badge"/></a>
-  <a href="https://youtu.be/i8bS2GoSpwA"><img alt="Watch Demo" src="https://img.shields.io/badge/▶_Watch_Demo-YouTube-ff0000?style=for-the-badge&logo=youtube&logoColor=white"/></a>
-  <a href="https://docs.google.com/presentation/d/1VYm6-1MB-f5Mos1foBsjGegSsH_-buWin-QHFJqqlRo/edit?usp=sharing"><img alt="Slide Deck" src="https://img.shields.io/badge/📊_Slides-Google_Slides-fbbc04?style=for-the-badge&logo=googleslides&logoColor=white"/></a>
+  <a href="https://alexis-code.vercel.app/">
+    <img alt="Try the Live App" src="https://img.shields.io/badge/🌐%20%20TRY%20IT%20LIVE-alexis--code.vercel.app-7c3aed?style=for-the-badge&labelColor=4c1d95"/>
+  </a>
+  &nbsp;
+  <a href="https://docs.google.com/presentation/d/1VYm6-1MB-f5Mos1foBsjGegSsH_-buWin-QHFJqqlRo/edit?usp=sharing">
+    <img alt="View the Slide Deck" src="https://img.shields.io/badge/📊%20%20PITCH%20DECK-Google%20Slides-fbbc04?style=for-the-badge&labelColor=92400e&logo=googleslides&logoColor=white"/>
+  </a>
 </p>
 
 | Landing | Live interview |
