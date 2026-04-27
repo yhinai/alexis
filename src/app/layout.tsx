@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BetterThanLeet - AI Technical Interviewer",
+  title: "Alexis - AI Technical Interviewer",
   description: "LeetCode can't ask follow-up questions. Alexis can. Experience voice-first technical interviews with real-time coding and instant feedback.",
 };
 
