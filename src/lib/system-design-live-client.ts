@@ -170,7 +170,6 @@ export class SystemDesignLiveClient {
 
       this.ws.onclose = (event: CloseEvent) => {
         // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/09eab501-0e28-4c32-9b57-199a2e4fe649',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'system-design-live-client.ts:onclose',message:'WebSocket closed',data:{code:event.code,reason:event.reason,wasClean:event.wasClean},timestamp:Date.now(),hypothesisId:'D2'})}).catch(()=>{});
         // #endregion
         console.log("🔌 System Design WebSocket Closed:", event.code, event.reason);
         this._isConnected = false;
@@ -229,7 +228,6 @@ export class SystemDesignLiveClient {
     // #region agent log
     const setupStr = JSON.stringify(setupMessage);
     const toolInfo = setupMessage.setup.tools?.[0];
-    fetch('http://127.0.0.1:7242/ingest/09eab501-0e28-4c32-9b57-199a2e4fe649',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'system-design-live-client.ts:sendSetupMessage',message:'Setup message being sent',data:{setupLength:setupStr.length,toolCount:toolInfo?.functionDeclarations?.length || 0,toolNames:toolInfo?.functionDeclarations?.map((f:any)=>f.name) || [],hasTools:!!setupMessage.setup.tools,useFallback:this.useFallbackTools,model:setupMessage.setup.model,promptLength:setupMessage.setup.systemInstruction?.parts?.[0]?.text?.length,setupPreview:setupStr.substring(0,2000)},timestamp:Date.now(),hypothesisId:'D2'})}).catch(()=>{});
     // #endregion
     console.log(`📤 Sending setup message for system design... (useFallback=${this.useFallbackTools}, tools=${setupMessage.setup.tools ? `${toolInfo?.functionDeclarations?.length || 0} tools` : 'none'})`);
     this.ws.send(setupStr);
@@ -349,7 +347,6 @@ export class SystemDesignLiveClient {
   private handleRawMessage(event: MessageEvent) {
     this.lastResponseTime = Date.now();
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/09eab501-0e28-4c32-9b57-199a2e4fe649',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'system-design-live-client.ts:handleRawMessage',message:'Raw WS message',data:{dataType:typeof event.data,isBlob:event.data instanceof Blob,dataPreview:typeof event.data==='string'?event.data.substring(0,200):'(not string)'},timestamp:Date.now(),hypothesisId:'G'})}).catch(()=>{});
     // #endregion
 
     let msg: any;
@@ -380,8 +377,6 @@ export class SystemDesignLiveClient {
 
   private processServerMessage(msg: any) {
     // #region agent log
-    const msgKeys = Object.keys(msg);
-    fetch('http://127.0.0.1:7242/ingest/09eab501-0e28-4c32-9b57-199a2e4fe649',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'system-design-live-client.ts:processServerMessage',message:'Server message received',data:{msgKeys,hasSetupComplete:msg.setupComplete!==undefined,hasServerContent:!!msg.serverContent,hasToolCall:!!msg.toolCall,preview:JSON.stringify(msg).substring(0,300)},timestamp:Date.now(),hypothesisId:'G'})}).catch(()=>{});
     // #endregion
     
     // Handle setup complete - start audio input
@@ -486,7 +481,6 @@ export class SystemDesignLiveClient {
   private async handleToolCall(toolCall: any) {
     const functionCalls = toolCall.functionCalls || [];
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/09eab501-0e28-4c32-9b57-199a2e4fe649',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'system-design-live-client.ts:handleToolCall',message:'Tool call received from Gemini',data:{callCount:functionCalls.length,calls:functionCalls.map((f:any)=>({name:f.name,id:f.id,argsKeys:Object.keys(f.args||{})}))},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
     // #endregion
     console.log("🛠️ Tool Call Received:", functionCalls.map((f: any) => ({ name: f.name, id: f.id })));
 

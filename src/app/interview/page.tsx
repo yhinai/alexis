@@ -196,21 +196,28 @@ export default function InterviewPage() {
     // Initialize session token first, then workspace
     initSession().then(() => initWorkspace());
 
-    // Cleanup on page unload (browser close, tab close, navigation away)
+    // Cleanup on page unload. We listen for BOTH `beforeunload` and `pagehide`
+    // because Safari/iOS does not fire `beforeunload` reliably (esp. for
+    // bfcache transitions), while Chrome fires both. Guard with a `fired`
+    // flag so the same close doesn't ship two delete beacons.
+    let beaconFired = false;
     const handleBeforeUnload = () => {
+      if (beaconFired) return;
+      beaconFired = true;
       const wsId = useInterviewStore.getState().workspaceId;
       if (wsId) {
-        // Use sendBeacon for reliable cleanup on page unload
         const data = JSON.stringify({ workspaceId: wsId });
         navigator.sendBeacon('/api/sandbox/delete', new Blob([data], { type: 'application/json' }));
       }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handleBeforeUnload);
 
     // Cleanup on component unmount (React navigation)
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handleBeforeUnload);
       const wsId = useInterviewStore.getState().workspaceId;
       if (wsId) {
         cleanupWorkspace(wsId);

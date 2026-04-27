@@ -294,10 +294,18 @@ export const useInterviewStore = create<InterviewState>()(
     }),
     {
       name: 'interview-storage',
-      version: 5,
+      version: 6,
       storage: createJSONStorage(() => localStorage),
       migrate: (persistedState: unknown, version: number) => {
-        const state = persistedState as Partial<InterviewState>;
+        const state = persistedState as Partial<InterviewState> & { isWizardMode?: boolean };
+        if (version < 6) {
+          // v6: strip persisted isWizardMode. Wizard Mode is dev-only now;
+          // any user with a stale `isWizardMode: true` from prior sessions
+          // would otherwise carry the override into production.
+          if ('isWizardMode' in state) {
+            delete state.isWizardMode;
+          }
+        }
         if (version === 0) {
           // Migrate from version 0 (no integrity field)
           return {
@@ -350,7 +358,7 @@ export const useInterviewStore = create<InterviewState>()(
       partialize: (state) => ({
         code: state.code,
         language: state.language,
-        isWizardMode: state.isWizardMode, // Persist wizard mode preference
+        // Wizard Mode is intentionally NOT persisted — it's dev-only.
         interviewMode: state.interviewMode, // Persist interview mode preference
         selectedCompanyId: state.selectedCompanyId, // Persist selected company for practice mode
         currentProblemId: state.currentProblemId, // Persist current problem

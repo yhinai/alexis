@@ -35,6 +35,9 @@ const WASM_PUBLIC_URL = '/spatialreal/avatar_core_wasm-bd762669.wasm';
 let wasmShimInstalled = false;
 function installWasmFetchShim() {
     if (wasmShimInstalled || typeof window === 'undefined') return;
+    // Scope the global fetch patch to the routes that actually mount the avatar.
+    const path = window.location.pathname;
+    if (!path.startsWith('/interview') && !path.startsWith('/practice')) return;
     wasmShimInstalled = true;
     const originalFetch = window.fetch.bind(window);
     window.fetch = (input, init) => {
@@ -86,9 +89,9 @@ export function SpatialRealAvatar({ audioBus, className }: Props) {
 
                 view = new AvatarView(avatar, mountRef.current);
                 view.onFirstRendering = () => console.log('[SpatialReal] first frame');
-                view.controller.onConnectionState = (s) => console.log('[SpatialReal] connection:', s);
-                view.controller.onConversationState = (s) => console.log('[SpatialReal] conversation:', s);
-                view.controller.onError = (err) => console.error('[SpatialReal] error:', err);
+                view.controller.onConnectionState = (s: unknown) => console.log('[SpatialReal] connection:', s);
+                view.controller.onConversationState = (s: unknown) => console.log('[SpatialReal] conversation:', s);
+                view.controller.onError = (err: unknown) => console.error('[SpatialReal] error:', err);
 
                 await view.controller.initializeAudioContext();
                 if (cancelled) return;
