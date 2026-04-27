@@ -18,10 +18,13 @@ No clicks. No silence. No honor system.
 
 ## Demo
 
-![Alexis demo](docs/demo.gif)
-*Alexis engaging in a real-time coding interview.*
+[![Alexis — see, hear, react](docs/screenshots/hero.jpg)](https://youtu.be/i8bS2GoSpwA)
 
-[https://alexis-code.vercel.app/](https://alexis-code.vercel.app/)
+🌐 **Live:** [alexis-code.vercel.app](https://alexis-code.vercel.app/) · ▶ **Watch:** [youtu.be/i8bS2GoSpwA](https://youtu.be/i8bS2GoSpwA) · 📊 **Slides:** [Google Slides](https://docs.google.com/presentation/d/1VYm6-1MB-f5Mos1foBsjGegSsH_-buWin-QHFJqqlRo/edit?usp=sharing)
+
+| Landing | Live interview |
+|:---:|:---:|
+| ![Landing page](docs/screenshots/landing.png) | ![Live interview with avatar, webcam, and transcript](docs/screenshots/interview.png) |
 
 ## Why Alexis exists
 
