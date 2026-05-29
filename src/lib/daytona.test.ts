@@ -123,7 +123,12 @@ describe('DaytonaService', () => {
         expect.objectContaining({
           language: 'python',
           autoStopInterval: 30,
-          labels: { env: 'test' },
+          labels: expect.objectContaining({
+            env: 'test',
+            // Reaper-required labels enforced by createWorkspace, regardless of caller input.
+            app: 'alexis',
+            createdAt: expect.any(String),
+          }),
         }),
         expect.any(Object)
       );

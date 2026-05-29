@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  reactStrictMode: false, // Helps with Monaco/WebSockets in dev
+  reactStrictMode: true,
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'avatars.githubusercontent.com' },
@@ -13,14 +13,10 @@ const nextConfig: NextConfig = {
   // Catch any request ending in the WASM filename and serve it from /public.
   async rewrites() {
     return [
-      {
-        source: '/:path*/avatar_core_wasm-bd762669.wasm',
-        destination: '/spatialreal/avatar_core_wasm-bd762669.wasm',
-      },
-      {
-        source: '/avatar_core_wasm-bd762669.wasm',
-        destination: '/spatialreal/avatar_core_wasm-bd762669.wasm',
-      },
+      // Constrain :hash to lowercase hex so this rewrite cannot be abused as a
+      // path-traversal vector via percent-encoded slashes (e.g. `..%2Fetc...`).
+      { source: '/:prefix*/avatar_core_wasm-:hash([0-9a-f]+).wasm', destination: '/spatialreal/avatar_core_wasm-:hash.wasm' },
+      { source: '/avatar_core_wasm-:hash([0-9a-f]+).wasm', destination: '/spatialreal/avatar_core_wasm-:hash.wasm' },
     ];
   },
 };

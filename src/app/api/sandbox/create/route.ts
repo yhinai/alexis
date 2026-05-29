@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import { daytonaService, CreateWorkspaceOptions } from '@/lib/daytona';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api-utils';
 import { DEFAULT_AUTO_STOP_INTERVAL } from '@/lib/constants';
@@ -41,6 +42,16 @@ export async function POST(request: Request) {
     };
 
     const workspace = await daytonaService.createWorkspace(options);
+
+    if (request.signal.aborted) {
+      try {
+        await daytonaService.cleanupWorkspace(workspace.id);
+      } catch (cleanupErr) {
+        console.warn('Failed to cleanup workspace after client abort:', cleanupErr);
+      }
+      return NextResponse.json({ error: 'Client aborted' }, { status: 499 });
+    }
+
     return successResponse(workspace);
   } catch (error) {
     return handleApiError(error, 'API Create Workspace Error');

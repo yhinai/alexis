@@ -80,11 +80,20 @@ export function InterviewAgent() {
             const name = call.name;
             const args = call.args || {};
             const id = call.id; // Gemini function call ID
-            const fn = (toolFunctions as any)[name];
+            const knownTools = toolFunctions as Record<string, ((args: Record<string, unknown>) => unknown) | undefined>;
+            const fn = knownTools[name];
 
             console.log(`🔧 Executing tool: ${name}`, { id, args });
 
-            if (fn) {
+            if (typeof fn !== 'function') {
+                console.error(`[tool-dispatch] Unknown tool requested by Gemini: ${name}. Available: ${Object.keys(toolFunctions).join(', ')}`);
+                console.warn(`⚠️ Tool ${name} not found in toolFunctions`);
+                responses.push({
+                    id: id,
+                    name: name,
+                    response: { error: `Tool ${name} not found` }
+                });
+            } else {
                 setIsThinking(true);
                 setCurrentAction(`Running ${name}...`);
                 try {
@@ -104,13 +113,6 @@ export function InterviewAgent() {
                     });
                 }
                 setIsThinking(false);
-            } else {
-                console.warn(`⚠️ Tool ${name} not found in toolFunctions`);
-                responses.push({
-                    id: id,
-                    name: name,
-                    response: { error: `Tool ${name} not found` }
-                });
             }
         }
         return responses;

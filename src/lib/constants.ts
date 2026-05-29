@@ -53,5 +53,22 @@ export const CODERABBIT_INSTALL_TIMEOUT = 60000; // 60 seconds
 export const DEFAULT_GEMINI_VOICE = "Aoede"; // Warm, professional female voice
 export const DEFAULT_VOICE_ID = DEFAULT_GEMINI_VOICE; // Alias for backwards compatibility
 
-// Keyboard Shortcuts
-export const WIZARD_SHORTCUT = { ctrl: true, shift: true, key: 'X' };
+// Gemini model identifiers — single source of truth. Rotating a model = one-line PR.
+export const GEMINI_MODELS = {
+  reasoning: 'gemini-3.1-pro-preview',
+  tts: 'gemini-3.1-flash-tts-preview',
+  liveAudio: 'models/gemini-2.5-flash-native-audio-preview-12-2025',
+} as const;
+
+// Keyboard Shortcuts — Wizard Mode is a dev-only demo override.
+// In production builds we set this to null so the listener short-circuits.
+export const WIZARD_SHORTCUT: { ctrl: boolean; shift: boolean; key: string } | null =
+  process.env.NODE_ENV === 'production'
+    ? null
+    : { ctrl: true, shift: true, key: 'X' };
+
+// Aggressive throttle on credential-mint endpoint. Even after ephemeral-token
+// migration, this endpoint is the gate to costly downstream calls. 10/min
+// tolerates StrictMode double-mounts in dev and occasional refreshes during
+// a slow Daytona cold start.
+export const GEMINI_SESSION_RATE_LIMIT = { tokens: 10, window: 60_000 } as const;

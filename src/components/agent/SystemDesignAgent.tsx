@@ -63,18 +63,27 @@ export function SystemDesignAgent() {
                 const name = call.name;
                 const args = call.args || {};
                 const id = call.id;
-                const fn = (toolFunctions as any)[name];
+                const knownTools = toolFunctions as Record<string, ((args: Record<string, unknown>) => unknown) | undefined>;
+                const fn = knownTools[name];
 
                 console.log(`🔧 Executing tool: ${name}`, { id, args });
 
                 // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/09eab501-0e28-4c32-9b57-199a2e4fe649',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SystemDesignAgent.tsx:tool-dispatch',message:'Tool dispatch',data:{name,hasHandler:!!fn,argKeys:Object.keys(args||{}),args:JSON.stringify(args).substring(0,500)},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
                 // #endregion
-                if (fn) {
+                if (typeof fn !== 'function') {
+                    // #region agent log
+                    // #endregion
+                    console.error(`[tool-dispatch] Unknown tool requested by Gemini: ${name}. Available: ${Object.keys(toolFunctions).join(', ')}`);
+                    console.warn(`⚠️ Tool ${name} not found in toolFunctions`);
+                    return {
+                        id: id,
+                        name: name,
+                        response: { error: `Tool ${name} not found` }
+                    };
+                } else {
                     try {
                         const result = await fn(args);
                         // #region agent log
-                        fetch('http://127.0.0.1:7242/ingest/09eab501-0e28-4c32-9b57-199a2e4fe649',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SystemDesignAgent.tsx:tool-result',message:'Tool result',data:{name,resultPreview:typeof result==='string'?result.substring(0,500):JSON.stringify(result).substring(0,500)},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
                         // #endregion
                         console.log(`✅ Tool ${name} result:`, typeof result === 'string' ? result.substring(0, 200) : result);
                         return {
@@ -84,7 +93,6 @@ export function SystemDesignAgent() {
                         };
                     } catch (err) {
                         // #region agent log
-                        fetch('http://127.0.0.1:7242/ingest/09eab501-0e28-4c32-9b57-199a2e4fe649',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SystemDesignAgent.tsx:tool-error',message:'Tool threw error',data:{name,error:String(err)},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
                         // #endregion
                         console.error(`❌ Tool ${name} error:`, err);
                         return {
@@ -93,16 +101,6 @@ export function SystemDesignAgent() {
                             response: { error: String(err) }
                         };
                     }
-                } else {
-                    // #region agent log
-                    fetch('http://127.0.0.1:7242/ingest/09eab501-0e28-4c32-9b57-199a2e4fe649',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SystemDesignAgent.tsx:tool-not-found',message:'Tool NOT FOUND',data:{name,availableTools:Object.keys(toolFunctions)},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-                    // #endregion
-                    console.warn(`⚠️ Tool ${name} not found in toolFunctions`);
-                    return {
-                        id: id,
-                        name: name,
-                        response: { error: `Tool ${name} not found` }
-                    };
                 }
             })
         );
@@ -223,7 +221,6 @@ export function SystemDesignAgent() {
             client.onSetupComplete = () => {
                 console.log("📐 System design session ready - sending tool nudge");
                 // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/09eab501-0e28-4c32-9b57-199a2e4fe649',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SystemDesignAgent.tsx:onSetupComplete',message:'Setup complete, sending nudge',data:{topicId:selectedTopicId},timestamp:Date.now(),hypothesisId:'NUDGE'})}).catch(()=>{});
                 // #endregion
                 // Give a brief delay for audio pipeline to initialize, then nudge
                 setTimeout(() => {

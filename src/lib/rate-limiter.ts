@@ -134,6 +134,15 @@ export const RATE_LIMIT_CONFIG: Record<string, RateLimitConfig> = {
   '/api/interview/report': { tokens: 5, window: 60000 },   // 5 per minute (resource-intensive)
   '/api/tts': { tokens: 15, window: 60000 },               // 15 per minute
 
+  // Credential-mint endpoints — aggressive throttle. These hand out tokens
+  // that gate expensive downstream calls; abuse here drains quotas.
+  // 10/min is tight but tolerates StrictMode double-mounts in dev and the
+  // occasional refresh during a slow Daytona init without locking real users
+  // out of their own session.
+  '/api/gemini/session': { tokens: 10, window: 60000 },     // 10 per minute
+  '/api/spatialreal/session': { tokens: 10, window: 60000 },// 10 per minute
+  '/api/auth/session': { tokens: 15, window: 60000 },       // 15 per minute
+
   // Default for other endpoints
   'default': { tokens: 30, window: 60000 }                 // 30 per minute
 };
